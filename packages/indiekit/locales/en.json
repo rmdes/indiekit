@@ -1,6 +1,6 @@
 {
   "guidance": {
-    "discovery": "So that %s can be discovered by Micropub clients and request permission to post to your website, add the following values to your website’s `<head>`:"
+    "discovery": "So that %s can be discovered by Micropub and Microsub clients and request permission to interact with your website, add the following values to your website's `<head>`:"
   },
   "homepage": {
     "title": "Welcome!"

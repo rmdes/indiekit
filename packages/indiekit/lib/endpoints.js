@@ -14,6 +14,7 @@ export const getEndpointUrls = (application, request) => {
     "introspectionEndpoint",
     "mediaEndpoint",
     "micropubEndpoint",
+    "microsubEndpoint",
     "tokenEndpoint",
   ]) {
     endpoints[endpoint] =

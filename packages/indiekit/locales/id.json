@@ -77,6 +77,7 @@
       "localeNotAvailable": "{{app}} belum diterjemahkan ke {{locale}}",
       "mediaEndpoint": "Titik akhir media",
       "micropubEndpoint": "Titik akhir Micropub",
+      "microsubEndpoint": "Microsub endpoint",
       "name": "Nama",
       "summaryTitle": "Pengaturan aplikasi",
       "themeColor": "Warna tema",

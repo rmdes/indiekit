@@ -1,0 +1,78 @@
+{
+  "microsub": {
+    "reader": {
+      "title": "Reader",
+      "empty": "No items to display",
+      "markAllRead": "Mark all as read"
+    },
+    "channels": {
+      "title": "Channels",
+      "new": "New channel",
+      "create": "Create channel",
+      "delete": "Delete channel",
+      "settings": "Channel settings",
+      "empty": "No channels yet. Create one to get started.",
+      "notifications": "Notifications"
+    },
+    "timeline": {
+      "title": "Timeline",
+      "empty": "No items in this channel",
+      "markRead": "Mark as read",
+      "markUnread": "Mark as unread",
+      "remove": "Remove"
+    },
+    "feeds": {
+      "title": "Feeds",
+      "follow": "Follow",
+      "unfollow": "Unfollow",
+      "empty": "No feeds followed in this channel"
+    },
+    "item": {
+      "reply": "Reply",
+      "like": "Like",
+      "repost": "Repost",
+      "bookmark": "Bookmark",
+      "viewOriginal": "View original"
+    },
+    "compose": {
+      "title": "Compose",
+      "content": "What's on your mind?",
+      "submit": "Post",
+      "cancel": "Cancel",
+      "replyTo": "Replying to",
+      "likeOf": "Liking",
+      "repostOf": "Reposting"
+    },
+    "settings": {
+      "title": "%{channel} settings",
+      "excludeTypes": "Exclude interaction types",
+      "excludeTypesHelp": "Select types of posts to hide from this channel",
+      "excludeRegex": "Exclude pattern",
+      "excludeRegexHelp": "Regular expression to filter out matching content",
+      "save": "Save settings",
+      "types": {
+        "like": "Likes",
+        "repost": "Reposts",
+        "bookmark": "Bookmarks",
+        "reply": "Replies",
+        "checkin": "Check-ins"
+      }
+    },
+    "search": {
+      "title": "Search",
+      "placeholder": "Enter URL or search term",
+      "submit": "Search",
+      "noResults": "No results found"
+    },
+    "preview": {
+      "title": "Preview",
+      "subscribe": "Subscribe to this feed"
+    },
+    "error": {
+      "channelNotFound": "Channel not found",
+      "feedNotFound": "Feed not found",
+      "invalidUrl": "Invalid URL",
+      "invalidAction": "Invalid action"
+    }
+  }
+}
