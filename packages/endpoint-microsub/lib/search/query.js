@@ -94,7 +94,8 @@ export async function searchItemsRegex(
         { "author.name": regex },
       ],
     })
-    .toSorted({ published: -1 })
+    // eslint-disable-next-line unicorn/no-array-sort -- MongoDB cursor method, not Array#sort
+    .sort({ published: -1 })
     .limit(limit)
     .toArray();
 

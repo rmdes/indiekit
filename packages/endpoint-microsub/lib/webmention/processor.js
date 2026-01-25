@@ -127,13 +127,13 @@ export async function getNotifications(application, userId, options = {}) {
     query.readBy = { $ne: userId };
   }
 
-  /* eslint-disable unicorn/no-array-callback-reference -- query is MongoDB query object */
+  /* eslint-disable unicorn/no-array-callback-reference, unicorn/no-array-sort -- MongoDB cursor methods */
   const notifications = await collection
     .find(query)
-    .toSorted({ published: -1 })
+    .sort({ published: -1 })
     .limit(limit)
     .toArray();
-  /* eslint-enable unicorn/no-array-callback-reference */
+  /* eslint-enable unicorn/no-array-callback-reference, unicorn/no-array-sort */
 
   return notifications.map((n) => transformNotification(n, userId));
 }
