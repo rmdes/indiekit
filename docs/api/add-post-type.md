@@ -141,12 +141,17 @@ Post fields dictate a number of tasks:
 
 Indiekit provides automatic support for the following field types:
 
+- `audio`
+- `bookmark-of`
 - `category`
 - `content`
 - `featured`
 - `geo`
+- `in-reply-to`
+- `like-of`
 - `location`
 - `name`
+- `photo`
 - `summary`
 
 Installing other post type plug-ins will add to this list, and these fields can be shared by other post type plug-ins.
