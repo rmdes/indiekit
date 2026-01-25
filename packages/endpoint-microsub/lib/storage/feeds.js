@@ -173,48 +173,62 @@ export async function getFeedsToFetch(application) {
  * @param {object} application - Indiekit application
  * @param {ObjectId|string} id - Feed ObjectId
  * @param {boolean} changed - Whether content changed
+ * @param {object} [extra] - Additional fields to update
  * @returns {Promise<object|null>} Updated feed
  */
-export async function updateFeedAfterFetch(application, id, changed) {
+export async function updateFeedAfterFetch(
+  application,
+  id,
+  changed,
+  extra = {},
+) {
   const collection = getCollection(application);
   const objectId = typeof id === "string" ? new ObjectId(id) : id;
 
-  // Get current feed state
-  const feed = await collection.findOne({ _id: objectId });
-  if (!feed) return;
+  // If extra contains tier info, use that (from processor)
+  // Otherwise calculate locally (legacy behavior)
+  let updateData;
 
-  let tier = feed.tier;
-  let unmodified = feed.unmodified;
+  if (extra.tier === undefined) {
+    // Get current feed state for legacy calculation
+    const feed = await collection.findOne({ _id: objectId });
+    if (!feed) return;
 
-  if (changed) {
-    // Content changed - decrease tier (more frequent polling)
-    tier = Math.max(0, tier - 1);
-    unmodified = 0;
-  } else {
-    // No change - increment unmodified counter
-    unmodified++;
-    if (unmodified >= 2) {
-      // Two consecutive unchanged fetches - increase tier (less frequent)
-      tier = Math.min(10, tier + 1);
+    let tier = feed.tier;
+    let unmodified = feed.unmodified;
+
+    if (changed) {
+      tier = Math.max(0, tier - 1);
       unmodified = 0;
+    } else {
+      unmodified++;
+      if (unmodified >= 2) {
+        tier = Math.min(10, tier + 1);
+        unmodified = 0;
+      }
     }
-  }
 
-  // Calculate next fetch time: 2^tier minutes
-  const minutes = Math.ceil(Math.pow(2, tier));
-  const nextFetchAt = new Date(Date.now() + minutes * 60 * 1000);
+    const minutes = Math.ceil(Math.pow(2, tier));
+    const nextFetchAt = new Date(Date.now() + minutes * 60 * 1000);
+
+    updateData = {
+      tier,
+      unmodified,
+      nextFetchAt,
+      lastFetchedAt: new Date(),
+      updatedAt: new Date(),
+    };
+  } else {
+    updateData = {
+      ...extra,
+      lastFetchedAt: new Date(),
+      updatedAt: new Date(),
+    };
+  }
 
   return collection.findOneAndUpdate(
     { _id: objectId },
-    {
-      $set: {
-        tier,
-        unmodified,
-        nextFetchAt,
-        lastFetchedAt: new Date(),
-        updatedAt: new Date(),
-      },
-    },
+    { $set: updateData },
     { returnDocument: "after" },
   );
 }
@@ -225,26 +239,34 @@ export async function updateFeedAfterFetch(application, id, changed) {
  * @param {ObjectId|string} id - Feed ObjectId
  * @param {object} websub - WebSub data
  * @param {string} websub.hub - Hub URL
- * @param {string} websub.secret - Subscription secret
- * @param {number} websub.leaseSeconds - Lease duration
+ * @param {string} [websub.topic] - Feed topic URL
+ * @param {string} [websub.secret] - Subscription secret
+ * @param {number} [websub.leaseSeconds] - Lease duration
  * @returns {Promise<object|null>} Updated feed
  */
 export async function updateFeedWebsub(application, id, websub) {
   const collection = getCollection(application);
   const objectId = typeof id === "string" ? new ObjectId(id) : id;
 
-  const expiresAt = new Date(Date.now() + websub.leaseSeconds * 1000);
+  const websubData = {
+    hub: websub.hub,
+    topic: websub.topic,
+  };
+
+  // Only set these if provided (subscription confirmed)
+  if (websub.secret) {
+    websubData.secret = websub.secret;
+  }
+  if (websub.leaseSeconds) {
+    websubData.leaseSeconds = websub.leaseSeconds;
+    websubData.expiresAt = new Date(Date.now() + websub.leaseSeconds * 1000);
+  }
 
   return collection.findOneAndUpdate(
     { _id: objectId },
     {
       $set: {
-        websub: {
-          hub: websub.hub,
-          secret: websub.secret,
-          leaseSeconds: websub.leaseSeconds,
-          expiresAt,
-        },
+        websub: websubData,
         updatedAt: new Date(),
       },
     },
