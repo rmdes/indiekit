@@ -3,7 +3,7 @@
  * @module webmention/receiver
  */
 
-import { ensureNotificationsChannel } from "../storage/channels.js";
+import { processWebmention } from "./processor.js";
 
 /**
  * Receive a webmention
@@ -32,23 +32,22 @@ export async function receive(request, response) {
     });
   }
 
-  // TODO: Queue for async verification
-  // For now, accept and queue
   const { application } = request.app.locals;
+  const userId = request.session?.userId;
 
-  // Ensure notifications channel exists
-  await ensureNotificationsChannel(application);
-
-  // TODO: Verify webmention asynchronously
-  // - Fetch source URL
-  // - Check for link to target
-  // - Parse author, content, type
-  // - Add to notifications channel
-
-  // Return 202 Accepted (processing asynchronously)
+  // Return 202 Accepted immediately (processing asynchronously)
   response.status(202).json({
     status: "accepted",
     message: "Webmention queued for processing",
+  });
+
+  // Process webmention in background
+  setImmediate(async () => {
+    try {
+      await processWebmention(application, source, target, userId);
+    } catch (error) {
+      console.error(`[Microsub] Error processing webmention: ${error.message}`);
+    }
   });
 }
 
