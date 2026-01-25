@@ -25,6 +25,12 @@ import { get as getTimeline, action as timelineAction } from "./timeline.js";
 export async function get(request, response, next) {
   try {
     const { action } = request.query;
+
+    // If no action provided, redirect to reader UI
+    if (!action) {
+      return response.redirect(request.baseUrl + "/reader");
+    }
+
     validateAction(action);
 
     switch (action) {
