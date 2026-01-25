@@ -1,0 +1,81 @@
+{% extends "document.njk" %}
+
+{% block content %}
+  <div class="settings">
+    <a href="{{ request.baseUrl }}/channels/{{ channel.uid }}" class="back-link">
+      {{ icon("arrow-left") }} {{ channel.name }}
+    </a>
+
+    <form method="post" action="{{ request.baseUrl }}/channels/{{ channel.uid }}/settings">
+      {{ fieldset({
+        legend: {
+          text: __("microsub.settings.excludeTypes"),
+          classes: "fieldset__legend--medium"
+        },
+        hint: {
+          text: __("microsub.settings.excludeTypesHelp")
+        },
+        items: [
+          {
+            id: "excludeTypes-like",
+            name: "excludeTypes",
+            value: "like",
+            text: __("microsub.settings.types.like"),
+            checked: channel.settings.excludeTypes | includes("like")
+          },
+          {
+            id: "excludeTypes-repost",
+            name: "excludeTypes",
+            value: "repost",
+            text: __("microsub.settings.types.repost"),
+            checked: channel.settings.excludeTypes | includes("repost")
+          },
+          {
+            id: "excludeTypes-bookmark",
+            name: "excludeTypes",
+            value: "bookmark",
+            text: __("microsub.settings.types.bookmark"),
+            checked: channel.settings.excludeTypes | includes("bookmark")
+          },
+          {
+            id: "excludeTypes-reply",
+            name: "excludeTypes",
+            value: "reply",
+            text: __("microsub.settings.types.reply"),
+            checked: channel.settings.excludeTypes | includes("reply")
+          },
+          {
+            id: "excludeTypes-checkin",
+            name: "excludeTypes",
+            value: "checkin",
+            text: __("microsub.settings.types.checkin"),
+            checked: channel.settings.excludeTypes | includes("checkin")
+          }
+        ]
+      }) | checkboxes }}
+
+      {{ field({
+        label: {
+          text: __("microsub.settings.excludeRegex")
+        },
+        hint: {
+          text: __("microsub.settings.excludeRegexHelp")
+        },
+        input: {
+          id: "excludeRegex",
+          name: "excludeRegex",
+          value: channel.settings.excludeRegex
+        }
+      }) }}
+
+      <div class="button-group">
+        {{ button({
+          text: __("microsub.settings.save")
+        }) }}
+        <a href="{{ request.baseUrl }}/channels/{{ channel.uid }}" class="button button--secondary">
+          {{ __("Cancel") }}
+        </a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

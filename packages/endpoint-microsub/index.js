@@ -10,7 +10,6 @@ import { websubHandler } from "./lib/websub/handler.js";
 
 const defaults = {
   mountPath: "/microsub",
-  readerPath: "/reader",
 };
 const router = express.Router();
 const readerRouter = express.Router();
@@ -20,13 +19,11 @@ export default class MicrosubEndpoint {
 
   /**
    * @param {object} options - Plugin options
-   * @param {string} [options.mountPath] - Path to mount Microsub API
-   * @param {string} [options.readerPath] - Path to mount reader UI
+   * @param {string} [options.mountPath] - Path to mount Microsub endpoint
    */
   constructor(options = {}) {
     this.options = { ...defaults, ...options };
     this.mountPath = this.options.mountPath;
-    this.readerPath = this.options.readerPath;
   }
 
   /**
@@ -35,7 +32,7 @@ export default class MicrosubEndpoint {
    */
   get navigationItems() {
     return {
-      href: this.options.readerPath,
+      href: path.join(this.options.mountPath, "reader"),
       text: "microsub.reader.title",
       requiresDatabase: true,
     };
@@ -47,7 +44,7 @@ export default class MicrosubEndpoint {
    */
   get shortcutItems() {
     return {
-      url: path.join(this.options.readerPath, "channels"),
+      url: path.join(this.options.mountPath, "reader", "channels"),
       name: "microsub.channels.title",
       iconName: "feed",
       requiresDatabase: true,
@@ -55,8 +52,7 @@ export default class MicrosubEndpoint {
   }
 
   /**
-   * Microsub API routes (authenticated)
-   * These handle the Microsub protocol actions
+   * Microsub API and reader UI routes (authenticated)
    * @returns {import("express").Router} Express router
    */
   get routes() {
@@ -70,6 +66,22 @@ export default class MicrosubEndpoint {
 
     // Webmention receiving endpoint
     router.post("/webmention", webmentionReceiver.receive);
+
+    // Reader UI routes (mounted as sub-router for correct baseUrl)
+    readerRouter.get("/", readerController.index);
+    readerRouter.get("/channels", readerController.channels);
+    readerRouter.get("/channels/new", readerController.newChannel);
+    readerRouter.post("/channels/new", readerController.createChannel);
+    readerRouter.get("/channels/:uid", readerController.channel);
+    readerRouter.get("/channels/:uid/settings", readerController.settings);
+    readerRouter.post(
+      "/channels/:uid/settings",
+      readerController.updateSettings,
+    );
+    readerRouter.get("/item/:id", readerController.item);
+    readerRouter.get("/compose", readerController.compose);
+    readerRouter.post("/compose", readerController.submitCompose);
+    router.use("/reader", readerRouter);
 
     return router;
   }
@@ -124,28 +136,5 @@ export default class MicrosubEndpoint {
    */
   destroy() {
     stopScheduler();
-  }
-
-  /**
-   * Reader UI routes
-   * @returns {Function} Function returning Express router
-   */
-  get _routes() {
-    // Reader UI routes
-    readerRouter.get("/", readerController.index);
-    readerRouter.get("/channels", readerController.channels);
-    readerRouter.get("/channels/new", readerController.newChannel);
-    readerRouter.post("/channels/new", readerController.createChannel);
-    readerRouter.get("/channels/:uid", readerController.channel);
-    readerRouter.get("/channels/:uid/settings", readerController.settings);
-    readerRouter.post(
-      "/channels/:uid/settings",
-      readerController.updateSettings,
-    );
-    readerRouter.get("/item/:id", readerController.item);
-    readerRouter.get("/compose", readerController.compose);
-    readerRouter.post("/compose", readerController.submitCompose);
-
-    return () => readerRouter;
   }
 }

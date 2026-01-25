@@ -1,0 +1,41 @@
+{% extends "document.njk" %}
+
+{% block content %}
+  <div class="channel">
+    <header class="channel__header">
+      <a href="{{ request.baseUrl }}/channels" class="back-link">
+        {{ icon("arrow-left") }} {{ __("microsub.channels.title") }}
+      </a>
+      <div class="channel__actions">
+        <a href="{{ request.baseUrl }}/channels/{{ channel.uid }}/settings" class="button button--secondary button--small">
+          {{ icon("settings") }} {{ __("microsub.channels.settings") }}
+        </a>
+      </div>
+    </header>
+
+    {% if items.length > 0 %}
+    <div class="timeline">
+      {% for item in items %}
+      {% include "partials/item-card.njk" %}
+      {% endfor %}
+    </div>
+
+    {% if paging %}
+    <nav class="timeline__paging" aria-label="Pagination">
+      {% if paging.before %}
+      <a href="?before={{ paging.before }}" class="button button--secondary">
+        {{ icon("arrow-left") }} {{ __("microsub.reader.newer") }}
+      </a>
+      {% endif %}
+      {% if paging.after %}
+      <a href="?after={{ paging.after }}" class="button button--secondary">
+        {{ __("microsub.reader.older") }} {{ icon("arrow-right") }}
+      </a>
+      {% endif %}
+    </nav>
+    {% endif %}
+    {% else %}
+    {{ prose({ text: __("microsub.timeline.empty") }) }}
+    {% endif %}
+  </div>
+{% endblock %}

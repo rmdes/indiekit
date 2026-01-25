@@ -1,0 +1,85 @@
+{% extends "document.njk" %}
+
+{% block content %}
+  <article class="item">
+    <a href="{{ request.headers.referer or request.baseUrl + '/channels' }}" class="back-link">
+      {{ icon("arrow-left") }} {{ __("Back") }}
+    </a>
+
+    {% if item.author %}
+    <header class="item__author">
+      {% if item.author.photo %}
+      <img src="{{ item.author.photo }}" alt="" class="item__author-photo" width="48" height="48" loading="lazy">
+      {% endif %}
+      <div class="item__author-info">
+        <span class="item__author-name">
+          {% if item.author.url %}
+          <a href="{{ item.author.url }}">{{ item.author.name or item.author.url }}</a>
+          {% else %}
+          {{ item.author.name or "Unknown" }}
+          {% endif %}
+        </span>
+        {% if item.published %}
+        <time datetime="{{ item.published }}" class="item__date">
+          {{ item.published | date("PPPp", { locale: locale, timeZone: application.timeZone }) }}
+        </time>
+        {% endif %}
+      </div>
+    </header>
+    {% endif %}
+
+    {% if item.name %}
+    <h2 class="item__title">{{ item.name }}</h2>
+    {% endif %}
+
+    {% if item.content %}
+    <div class="item__content prose">
+      {% if item.content.html %}
+      {{ item.content.html | safe }}
+      {% else %}
+      {{ item.content.text }}
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if item.photo and item.photo.length > 0 %}
+    <div class="item__photos">
+      {% for photo in item.photo %}
+      <img src="{{ photo }}" alt="" class="item__photo" loading="lazy">
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if item.inReplyTo or item.likeOf or item.repostOf or item.bookmarkOf %}
+    <div class="item__context">
+      {% if item.inReplyTo %}
+      <p>{{ icon("reply") }} {{ __("Reply to") }}: <a href="{{ item.inReplyTo[0] }}">{{ item.inReplyTo[0] }}</a></p>
+      {% endif %}
+      {% if item.likeOf %}
+      <p>{{ icon("heart") }} {{ __("Liked") }}: <a href="{{ item.likeOf[0] }}">{{ item.likeOf[0] }}</a></p>
+      {% endif %}
+      {% if item.repostOf %}
+      <p>{{ icon("repost") }} {{ __("Reposted") }}: <a href="{{ item.repostOf[0] }}">{{ item.repostOf[0] }}</a></p>
+      {% endif %}
+      {% if item.bookmarkOf %}
+      <p>{{ icon("bookmark") }} {{ __("Bookmarked") }}: <a href="{{ item.bookmarkOf[0] }}">{{ item.bookmarkOf[0] }}</a></p>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <footer class="item__actions">
+      <a href="{{ request.baseUrl }}/compose?replyTo={{ item.url | urlencode }}" class="button button--secondary button--small">
+        {{ icon("reply") }} {{ __("microsub.item.reply") }}
+      </a>
+      <a href="{{ request.baseUrl }}/compose?likeOf={{ item.url | urlencode }}" class="button button--secondary button--small">
+        {{ icon("heart") }} {{ __("microsub.item.like") }}
+      </a>
+      <a href="{{ request.baseUrl }}/compose?repostOf={{ item.url | urlencode }}" class="button button--secondary button--small">
+        {{ icon("repost") }} {{ __("microsub.item.repost") }}
+      </a>
+      <a href="{{ item.url }}" class="button button--secondary button--small" target="_blank" rel="noopener">
+        {{ icon("external") }} {{ __("microsub.item.viewOriginal") }}
+      </a>
+    </footer>
+  </article>
+{% endblock %}
