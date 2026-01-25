@@ -7,6 +7,7 @@ import { getRedisClient, publishEvent } from "../cache/redis.js";
 import { fetchAndParseFeed } from "../feeds/fetcher.js";
 import { getChannel } from "../storage/channels.js";
 import { updateFeedAfterFetch, updateFeedWebsub } from "../storage/feeds.js";
+import { passesRegexFilter, passesTypeFilter } from "../storage/filters.js";
 import { addItem } from "../storage/items.js";
 
 import { calculateNewTier } from "./tier.js";
@@ -167,64 +168,7 @@ export async function processFeed(application, feed) {
  * @returns {boolean} Whether the item passes filters
  */
 function passesFilters(item, settings) {
-  // Exclude by interaction type
-  if (settings.excludeTypes && settings.excludeTypes.length > 0) {
-    const itemType = detectInteractionType(item);
-    if (settings.excludeTypes.includes(itemType)) {
-      return false;
-    }
-  }
-
-  // Exclude by regex pattern
-  if (settings.excludeRegex) {
-    try {
-      const regex = new RegExp(settings.excludeRegex, "i");
-      const searchText = [
-        item.name,
-        item.summary,
-        item.content?.text,
-        item.content?.html,
-      ]
-        .filter(Boolean)
-        .join(" ");
-
-      if (regex.test(searchText)) {
-        return false;
-      }
-    } catch {
-      // Invalid regex, skip filter
-    }
-  }
-
-  return true;
-}
-
-/**
- * Detect the interaction type of an item
- * @param {object} item - Feed item
- * @returns {string} Interaction type
- */
-function detectInteractionType(item) {
-  if (item["like-of"] && item["like-of"].length > 0) {
-    return "like";
-  }
-  if (item["repost-of"] && item["repost-of"].length > 0) {
-    return "repost";
-  }
-  if (item["bookmark-of"] && item["bookmark-of"].length > 0) {
-    return "bookmark";
-  }
-  if (item["in-reply-to"] && item["in-reply-to"].length > 0) {
-    return "reply";
-  }
-  if (item.rsvp) {
-    return "rsvp";
-  }
-  if (item.checkin) {
-    return "checkin";
-  }
-
-  return "post";
+  return passesTypeFilter(item, settings) && passesRegexFilter(item, settings);
 }
 
 /**

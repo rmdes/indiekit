@@ -3,6 +3,7 @@
  * @module controllers/block
  */
 
+import { deleteItemsByAuthorUrl } from "../storage/items.js";
 import { validateUrl } from "../utils/validation.js";
 
 /**
@@ -56,7 +57,8 @@ export async function block(request, response) {
     });
   }
 
-  // TODO: Remove past items from blocked URL
+  // Remove past items from blocked URL
+  await deleteItemsByAuthorUrl(application, userId, url);
 
   response.json({ result: "ok" });
 }

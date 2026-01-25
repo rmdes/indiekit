@@ -378,6 +378,30 @@ export async function searchItems(application, channelId, query, limit = 20) {
 }
 
 /**
+ * Delete items by author URL (for blocking)
+ * @param {object} application - Indiekit application
+ * @param {string} userId - User ID (for filtering user's channels)
+ * @param {string} authorUrl - Author URL to delete items from
+ * @returns {Promise<number>} Number of deleted items
+ */
+export async function deleteItemsByAuthorUrl(application, userId, authorUrl) {
+  const collection = getCollection(application);
+  const channelsCollection = application.collections.get("microsub_channels");
+
+  // Get all channel IDs for this user
+  const userChannels = await channelsCollection.find({ userId }).toArray();
+  const channelIds = userChannels.map((c) => c._id);
+
+  // Delete all items from blocked author in user's channels
+  const result = await collection.deleteMany({
+    channelId: { $in: channelIds },
+    "author.url": authorUrl,
+  });
+
+  return result.deletedCount;
+}
+
+/**
  * Create indexes for efficient queries
  * @param {object} application - Indiekit application
  * @returns {Promise<void>}
