@@ -3,29 +3,37 @@
  * @module polling/scheduler
  */
 
-import { getFeedsToFetch, updateFeedAfterFetch } from "../storage/feeds.js";
+import { getFeedsToFetch } from "../storage/feeds.js";
+
+import { processFeedBatch } from "./processor.js";
 
 let schedulerInterval;
 let indiekitInstance;
+let isRunning = false;
+
+const POLL_INTERVAL = 60 * 1000; // Run scheduler every minute
+const BATCH_CONCURRENCY = 5; // Process 5 feeds at a time
 
 /**
  * Start the feed polling scheduler
- * @param {object} Indiekit - Indiekit instance
+ * @param {object} indiekit - Indiekit instance
  */
-export function startScheduler(Indiekit) {
+export function startScheduler(indiekit) {
   if (schedulerInterval) {
     return; // Already running
   }
 
-  indiekitInstance = Indiekit;
+  indiekitInstance = indiekit;
 
   // Run every minute
   schedulerInterval = setInterval(async () => {
-    await refreshFeeds();
-  }, 60 * 1000);
+    await runSchedulerCycle();
+  }, POLL_INTERVAL);
 
   // Run immediately on start
-  refreshFeeds();
+  runSchedulerCycle();
+
+  console.log("[Microsub] Feed polling scheduler started");
 }
 
 /**
@@ -37,47 +45,84 @@ export function stopScheduler() {
     schedulerInterval = undefined;
   }
   indiekitInstance = undefined;
+  console.log("[Microsub] Feed polling scheduler stopped");
 }
 
 /**
- * Refresh all feeds that are due for fetching
+ * Run a single scheduler cycle
  */
-async function refreshFeeds() {
+async function runSchedulerCycle() {
   if (!indiekitInstance) {
     return;
   }
+
+  // Prevent overlapping runs
+  if (isRunning) {
+    return;
+  }
+
+  isRunning = true;
 
   try {
     const application = indiekitInstance;
     const feeds = await getFeedsToFetch(application);
 
-    for (const feed of feeds) {
-      try {
-        await refreshFeed(application, feed);
-      } catch (error) {
-        console.error(`Error refreshing feed ${feed.url}:`, error.message);
+    if (feeds.length === 0) {
+      isRunning = false;
+      return;
+    }
+
+    console.log(`[Microsub] Processing ${feeds.length} feeds due for refresh`);
+
+    const result = await processFeedBatch(application, feeds, {
+      concurrency: BATCH_CONCURRENCY,
+    });
+
+    console.log(
+      `[Microsub] Processed ${result.total} feeds: ${result.successful} successful, ` +
+        `${result.failed} failed, ${result.itemsAdded} new items`,
+    );
+
+    // Log any errors
+    for (const feedResult of result.results) {
+      if (feedResult.error) {
+        console.error(
+          `[Microsub] Error processing ${feedResult.url}: ${feedResult.error}`,
+        );
       }
     }
   } catch (error) {
-    console.error("Error in feed scheduler:", error.message);
+    console.error("[Microsub] Error in scheduler cycle:", error.message);
+  } finally {
+    isRunning = false;
   }
 }
 
 /**
- * Refresh a single feed
+ * Manually trigger a feed refresh
  * @param {object} application - Indiekit application
- * @param {object} feed - Feed to refresh
+ * @param {string} feedId - Feed ID to refresh
+ * @returns {Promise<object>} Processing result
  */
-async function refreshFeed(application, feed) {
-  // TODO: Implement full feed fetching and processing
-  // 1. Fetch feed URL with caching
-  // 2. Parse feed (RSS, Atom, JSON Feed, h-feed)
-  // 3. Normalize to jf2 items
-  // 4. Apply channel filters
-  // 5. Store new items
-  // 6. Update feed tier based on changes
-  // 7. Broadcast SSE events for new items
+export async function refreshFeedNow(application, feedId) {
+  const { getFeedById } = await import("../storage/feeds.js");
+  const { processFeed } = await import("./processor.js");
 
-  // For now, just mark as fetched with no changes
-  await updateFeedAfterFetch(application, feed._id, false);
+  const feed = await getFeedById(application, feedId);
+  if (!feed) {
+    throw new Error("Feed not found");
+  }
+
+  return processFeed(application, feed);
+}
+
+/**
+ * Get scheduler status
+ * @returns {object} Scheduler status
+ */
+export function getSchedulerStatus() {
+  return {
+    running: !!schedulerInterval,
+    processing: isRunning,
+  };
 }

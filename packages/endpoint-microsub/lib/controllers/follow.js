@@ -5,11 +5,12 @@
 
 import { IndiekitError } from "@indiekit/error";
 
+import { refreshFeedNow } from "../polling/scheduler.js";
 import { getChannel } from "../storage/channels.js";
 import {
-  getFeedsForChannel,
   createFeed,
   deleteFeed,
+  getFeedsForChannel,
 } from "../storage/feeds.js";
 import { createFeedResponse } from "../utils/jf2.js";
 import { validateChannel, validateUrl } from "../utils/validation.js";
@@ -65,7 +66,11 @@ export async function follow(request, response) {
     photo: undefined,
   });
 
-  // TODO: Trigger immediate fetch
+  // Trigger immediate fetch in background (don't await)
+  refreshFeedNow(application, feed._id).catch((error) => {
+    console.error(`[Microsub] Error fetching new feed ${url}:`, error.message);
+  });
+
   // TODO: Attempt WebSub subscription
 
   response.status(201).json(createFeedResponse(feed));
