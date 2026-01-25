@@ -3,6 +3,13 @@
  * @module controllers/events
  */
 
+import {
+  addClient,
+  removeClient,
+  sendEvent,
+  subscribeClient,
+} from "../realtime/broker.js";
+
 /**
  * SSE stream endpoint
  * GET ?action=events
@@ -10,40 +17,40 @@
  * @param {object} response - Express response
  */
 export async function stream(request, response) {
+  const { application } = request.app.locals;
+  const userId = request.session?.userId;
+
   // Set SSE headers
   response.setHeader("Content-Type", "text/event-stream");
   response.setHeader("Cache-Control", "no-cache");
   response.setHeader("Connection", "keep-alive");
   response.setHeader("X-Accel-Buffering", "no"); // Disable nginx buffering
 
+  // Flush headers immediately
+  response.flushHeaders();
+
+  // Add client to broker (handles ping internally)
+  const client = addClient(response, userId, application);
+
+  // Subscribe to channels from query parameter
+  const { channels } = request.query;
+  if (channels) {
+    const channelList = Array.isArray(channels) ? channels : [channels];
+    for (const channelId of channelList) {
+      subscribeClient(response, channelId);
+    }
+  }
+
   // Send initial event
-  sendEvent(response, "started", { version: "1.0.0" });
-
-  // Set up ping interval
-  const pingInterval = setInterval(() => {
-    sendEvent(response, "ping", { timestamp: new Date().toISOString() });
-  }, 10_000);
-
-  // TODO: Subscribe to Redis pub/sub for real-time events
-  // const broker = getBroker(application);
-  // broker.addClient(response, request.session?.userId);
+  sendEvent(response, "started", {
+    version: "1.0.0",
+    channels: [...client.channels],
+  });
 
   // Handle client disconnect
   request.on("close", () => {
-    clearInterval(pingInterval);
-    // broker.removeClient(response);
+    removeClient(response);
   });
-}
-
-/**
- * Send an SSE event
- * @param {object} response - Express response
- * @param {string} event - Event name
- * @param {object} data - Event data
- */
-function sendEvent(response, event, data) {
-  response.write(`event: ${event}\n`);
-  response.write(`data: ${JSON.stringify(data)}\n\n`);
 }
 
 export const eventsController = { stream };
