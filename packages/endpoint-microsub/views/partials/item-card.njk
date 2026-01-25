@@ -1,0 +1,65 @@
+{# Item card for timeline display #}
+<article class="item-card{% if item._is_read %} item-card--read{% endif %}">
+  <a href="{{ request.baseUrl }}/item/{{ item.uid }}" class="item-card__link">
+    {% if item.author %}
+    <div class="item-card__author">
+      {% if item.author.photo %}
+      <img src="{{ item.author.photo }}" alt="" class="item-card__author-photo" width="40" height="40" loading="lazy">
+      {% endif %}
+      <div class="item-card__author-info">
+        <span class="item-card__author-name">{{ item.author.name or "Unknown" }}</span>
+        {% if item._source %}
+        <span class="item-card__source">{{ item._source.name or item._source.url }}</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if item._type and item._type !== "entry" %}
+    <div class="item-card__type">
+      {% if item._type === "like" %}
+      {{ icon("heart") }} Liked
+      {% elif item._type === "repost" %}
+      {{ icon("repost") }} Reposted
+      {% elif item._type === "reply" %}
+      {{ icon("reply") }} Reply
+      {% elif item._type === "bookmark" %}
+      {{ icon("bookmark") }} Bookmarked
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if item.name %}
+    <h3 class="item-card__title">{{ item.name }}</h3>
+    {% endif %}
+
+    {% if item.summary or item.content %}
+    <div class="item-card__content">
+      {% if item.summary %}
+      {{ item.summary | truncate(200) }}
+      {% elif item.content.text %}
+      {{ item.content.text | truncate(200) }}
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if item.photo and item.photo.length > 0 %}
+    <div class="item-card__photos">
+      {% for photo in item.photo | slice(0, 4) %}
+      <img src="{{ photo }}" alt="" class="item-card__photo" loading="lazy">
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <footer class="item-card__footer">
+      {% if item.published %}
+      <time datetime="{{ item.published }}" class="item-card__date">
+        {{ item.published | date("PP", { locale: locale, timeZone: application.timeZone }) }}
+      </time>
+      {% endif %}
+      {% if not item._is_read %}
+      <span class="item-card__unread">{{ icon("dot") }}</span>
+      {% endif %}
+    </footer>
+  </a>
+</article>

@@ -167,14 +167,14 @@ export async function item(request, response) {
   const userId = request.session?.userId;
   const { id } = request.params;
 
-  const itemDocumentument = await getItemById(application, id, userId);
-  if (!itemDocumentument) {
+  const itemDocument = await getItemById(application, id, userId);
+  if (!itemDocument) {
     return response.status(404).render("404");
   }
 
   response.render("item", {
-    title: itemDocumentument.name || "Item",
-    item: itemDocumentument,
+    title: itemDocument.name || "Item",
+    item: itemDocument,
   });
 }
 

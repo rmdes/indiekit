@@ -3,7 +3,9 @@
     "reader": {
       "title": "Reader",
       "empty": "No items to display",
-      "markAllRead": "Mark all as read"
+      "markAllRead": "Mark all as read",
+      "newer": "Newer",
+      "older": "Older"
     },
     "channels": {
       "title": "Channels",

@@ -1,0 +1,33 @@
+{% extends "document.njk" %}
+
+{% block content %}
+  <div class="channel-new">
+    <a href="{{ request.baseUrl }}/channels" class="back-link">
+      {{ icon("arrow-left") }} {{ __("microsub.channels.title") }}
+    </a>
+
+    <form method="post" action="{{ request.baseUrl }}/channels/new">
+      {{ field({
+        label: {
+          text: __("microsub.channels.new")
+        },
+        input: {
+          id: "name",
+          name: "name",
+          required: true,
+          autocomplete: "off",
+          autofocus: true
+        }
+      }) }}
+
+      <div class="button-group">
+        {{ button({
+          text: __("microsub.channels.create")
+        }) }}
+        <a href="{{ request.baseUrl }}/channels" class="button button--secondary">
+          {{ __("Cancel") }}
+        </a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

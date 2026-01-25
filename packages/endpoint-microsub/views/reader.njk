@@ -1,0 +1,37 @@
+{% extends "document.njk" %}
+
+{% block content %}
+  <div class="reader">
+    {% if channels.length > 0 %}
+    <ul class="reader__channels">
+      {% for channel in channels %}
+      <li class="reader__channel">
+        <a href="{{ request.baseUrl }}/channels/{{ channel.uid }}" class="reader__channel-link">
+          <span class="reader__channel-name">
+            {% if channel.uid === "notifications" %}
+            {{ icon("bell") }}
+            {% endif %}
+            {{ channel.name }}
+          </span>
+          {% if channel.unread > 0 %}
+          <span class="reader__channel-badge">{{ channel.unread }}</span>
+          {% endif %}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    <p class="reader__actions">
+      <a href="{{ request.baseUrl }}/channels/new" class="button button--secondary">
+        {{ icon("plus") }} {{ __("microsub.channels.new") }}
+      </a>
+    </p>
+    {% else %}
+    {{ prose({ text: __("microsub.channels.empty") }) }}
+    <p>
+      <a href="{{ request.baseUrl }}/channels/new" class="button button--primary">
+        {{ __("microsub.channels.new") }}
+      </a>
+    </p>
+    {% endif %}
+  </div>
+{% endblock %}
