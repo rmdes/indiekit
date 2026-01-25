@@ -99,7 +99,8 @@ export async function getTimelineItems(application, channelId, options = {}) {
   const items = await collection
     // eslint-disable-next-line unicorn/no-array-callback-reference -- query is MongoDB query object
     .find(query)
-    .toSorted(sort)
+    // eslint-disable-next-line unicorn/no-array-sort -- MongoDB cursor method, not Array#sort
+    .sort(sort)
     .limit(limit + 1)
     .toArray();
 
@@ -370,7 +371,8 @@ export async function searchItems(application, channelId, query, limit = 20) {
         { summary: regex },
       ],
     })
-    .toSorted({ published: -1 })
+    // eslint-disable-next-line unicorn/no-array-sort -- MongoDB cursor method, not Array#sort
+    .sort({ published: -1 })
     .limit(limit)
     .toArray();
 
