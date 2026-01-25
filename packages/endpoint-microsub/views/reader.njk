@@ -6,7 +6,7 @@
     <ul class="reader__channels">
       {% for channel in channels %}
       <li class="reader__channel">
-        <a href="{{ request.baseUrl }}/channels/{{ channel.uid }}" class="reader__channel-link">
+        <a href="{{ baseUrl }}/channels/{{ channel.uid }}" class="reader__channel-link">
           <span class="reader__channel-name">
             {% if channel.uid === "notifications" %}
             {{ icon("bell") }}
@@ -21,14 +21,14 @@
       {% endfor %}
     </ul>
     <p class="reader__actions">
-      <a href="{{ request.baseUrl }}/channels/new" class="button button--secondary">
+      <a href="{{ baseUrl }}/channels/new" class="button button--secondary">
         {{ icon("plus") }} {{ __("microsub.channels.new") }}
       </a>
     </p>
     {% else %}
     {{ prose({ text: __("microsub.channels.empty") }) }}
     <p>
-      <a href="{{ request.baseUrl }}/channels/new" class="button button--primary">
+      <a href="{{ baseUrl }}/channels/new" class="button button--primary">
         {{ __("microsub.channels.new") }}
       </a>
     </p>

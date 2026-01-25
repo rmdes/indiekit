@@ -2,11 +2,11 @@
 
 {% block content %}
   <div class="settings">
-    <a href="{{ request.baseUrl }}/channels/{{ channel.uid }}" class="back-link">
+    <a href="{{ baseUrl }}/channels/{{ channel.uid }}" class="back-link">
       {{ icon("arrow-left") }} {{ channel.name }}
     </a>
 
-    <form method="post" action="{{ request.baseUrl }}/channels/{{ channel.uid }}/settings">
+    <form method="post" action="{{ baseUrl }}/channels/{{ channel.uid }}/settings">
       {{ fieldset({
         legend: {
           text: __("microsub.settings.excludeTypes"),
@@ -72,7 +72,7 @@
         {{ button({
           text: __("microsub.settings.save")
         }) }}
-        <a href="{{ request.baseUrl }}/channels/{{ channel.uid }}" class="button button--secondary">
+        <a href="{{ baseUrl }}/channels/{{ channel.uid }}" class="button button--secondary">
           {{ __("Cancel") }}
         </a>
       </div>

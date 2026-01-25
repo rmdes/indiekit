@@ -39,6 +39,7 @@ export async function channels(request, response) {
   response.render("reader", {
     title: request.__("microsub.reader.title"),
     channels: channelList,
+    baseUrl: request.baseUrl,
   });
 }
 
@@ -50,6 +51,7 @@ export async function channels(request, response) {
 export async function newChannel(request, response) {
   response.render("channel-new", {
     title: request.__("microsub.channels.new"),
+    baseUrl: request.baseUrl,
   });
 }
 
@@ -97,6 +99,7 @@ export async function channel(request, response) {
     channel: channelDocument,
     items: timeline.items,
     paging: timeline.paging,
+    baseUrl: request.baseUrl,
   });
 }
 
@@ -120,6 +123,7 @@ export async function settings(request, response) {
       channel: channelDocument.name,
     }),
     channel: channelDocument,
+    baseUrl: request.baseUrl,
   });
 }
 
@@ -175,6 +179,7 @@ export async function item(request, response) {
   response.render("item", {
     title: itemDocument.name || "Item",
     item: itemDocument,
+    baseUrl: request.baseUrl,
   });
 }
 
@@ -191,6 +196,7 @@ export async function compose(request, response) {
     replyTo,
     likeOf,
     repostOf,
+    baseUrl: request.baseUrl,
   });
 }
 
