@@ -1,0 +1,151 @@
+import path from "node:path";
+
+import express from "express";
+
+import { microsubController } from "./lib/controllers/microsub.js";
+import { readerController } from "./lib/controllers/reader.js";
+import { startScheduler, stopScheduler } from "./lib/polling/scheduler.js";
+import { webmentionReceiver } from "./lib/webmention/receiver.js";
+import { websubHandler } from "./lib/websub/handler.js";
+
+const defaults = {
+  mountPath: "/microsub",
+  readerPath: "/reader",
+};
+const router = express.Router();
+const readerRouter = express.Router();
+
+export default class MicrosubEndpoint {
+  name = "Microsub endpoint";
+
+  /**
+   * @param {object} options - Plugin options
+   * @param {string} [options.mountPath] - Path to mount Microsub API
+   * @param {string} [options.readerPath] - Path to mount reader UI
+   */
+  constructor(options = {}) {
+    this.options = { ...defaults, ...options };
+    this.mountPath = this.options.mountPath;
+    this.readerPath = this.options.readerPath;
+  }
+
+  /**
+   * Navigation items for Indiekit admin
+   * @returns {object} Navigation item configuration
+   */
+  get navigationItems() {
+    return {
+      href: this.options.readerPath,
+      text: "microsub.reader.title",
+      requiresDatabase: true,
+    };
+  }
+
+  /**
+   * Shortcut items for quick actions
+   * @returns {object} Shortcut item configuration
+   */
+  get shortcutItems() {
+    return {
+      url: path.join(this.options.readerPath, "channels"),
+      name: "microsub.channels.title",
+      iconName: "feed",
+      requiresDatabase: true,
+    };
+  }
+
+  /**
+   * Microsub API routes (authenticated)
+   * These handle the Microsub protocol actions
+   * @returns {import("express").Router} Express router
+   */
+  get routes() {
+    // Main Microsub endpoint - dispatches based on action parameter
+    router.get("/", microsubController.get);
+    router.post("/", microsubController.post);
+
+    // WebSub callback endpoint
+    router.get("/websub/:id", websubHandler.verify);
+    router.post("/websub/:id", websubHandler.receive);
+
+    // Webmention receiving endpoint
+    router.post("/webmention", webmentionReceiver.receive);
+
+    return router;
+  }
+
+  /**
+   * Public routes (no authentication required)
+   * @returns {import("express").Router} Express router
+   */
+  get routesPublic() {
+    const publicRouter = express.Router();
+
+    // WebSub verification must be public for hubs to verify
+    publicRouter.get("/websub/:id", websubHandler.verify);
+    publicRouter.post("/websub/:id", websubHandler.receive);
+
+    // Webmention endpoint must be public
+    publicRouter.post("/webmention", webmentionReceiver.receive);
+
+    return publicRouter;
+  }
+
+  /**
+   * Initialize plugin
+   * @param {object} indiekit - Indiekit instance
+   */
+  init(indiekit) {
+    // Register MongoDB collections
+    indiekit.addCollection("microsub_channels");
+    indiekit.addCollection("microsub_feeds");
+    indiekit.addCollection("microsub_items");
+    indiekit.addCollection("microsub_notifications");
+    indiekit.addCollection("microsub_muted");
+    indiekit.addCollection("microsub_blocked");
+
+    // Register endpoint
+    indiekit.addEndpoint(this);
+
+    // Set microsub endpoint URL in config
+    if (!indiekit.config.application.microsubEndpoint) {
+      indiekit.config.application.microsubEndpoint = this.mountPath;
+    }
+
+    // Start feed polling scheduler when server starts
+    // This will be called after the server is ready
+    if (indiekit.database) {
+      startScheduler(indiekit);
+    }
+  }
+
+  /**
+   * Cleanup on shutdown
+   */
+  destroy() {
+    stopScheduler();
+  }
+
+  /**
+   * Reader UI routes
+   * @returns {Function} Function returning Express router
+   */
+  get _routes() {
+    // Reader UI routes
+    readerRouter.get("/", readerController.index);
+    readerRouter.get("/channels", readerController.channels);
+    readerRouter.get("/channels/new", readerController.newChannel);
+    readerRouter.post("/channels/new", readerController.createChannel);
+    readerRouter.get("/channels/:uid", readerController.channel);
+    readerRouter.get("/channels/:uid/settings", readerController.settings);
+    readerRouter.post(
+      "/channels/:uid/settings",
+      readerController.updateSettings,
+    );
+    readerRouter.get("/item/:id", readerController.item);
+    readerRouter.get("/compose", readerController.compose);
+    readerRouter.post("/compose", readerController.submitCompose);
+
+    return () => readerRouter;
+  }
+}

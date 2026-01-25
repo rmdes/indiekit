@@ -77,6 +77,7 @@
       "localeNotAvailable": "{{app}} ainda não foi traduzido para {{locale}}",
       "mediaEndpoint": "Endpoint de mídia",
       "micropubEndpoint": "Endpoint de Micropub",
+      "microsubEndpoint": "Microsub endpoint",
       "name": "Nome",
       "summaryTitle": "Configurações de aplicação",
       "themeColor": "Cor do tema",
