@@ -3,11 +3,11 @@
 {% block content %}
   <div class="channel">
     <header class="channel__header">
-      <a href="{{ request.baseUrl }}/channels" class="back-link">
+      <a href="{{ baseUrl }}/channels" class="back-link">
         {{ icon("arrow-left") }} {{ __("microsub.channels.title") }}
       </a>
       <div class="channel__actions">
-        <a href="{{ request.baseUrl }}/channels/{{ channel.uid }}/settings" class="button button--secondary button--small">
+        <a href="{{ baseUrl }}/channels/{{ channel.uid }}/settings" class="button button--secondary button--small">
           {{ icon("settings") }} {{ __("microsub.channels.settings") }}
         </a>
       </div>

@@ -2,11 +2,11 @@
 
 {% block content %}
   <div class="channel-new">
-    <a href="{{ request.baseUrl }}/channels" class="back-link">
+    <a href="{{ baseUrl }}/channels" class="back-link">
       {{ icon("arrow-left") }} {{ __("microsub.channels.title") }}
     </a>
 
-    <form method="post" action="{{ request.baseUrl }}/channels/new">
+    <form method="post" action="{{ baseUrl }}/channels/new">
       {{ field({
         label: {
           text: __("microsub.channels.new")
@@ -24,7 +24,7 @@
         {{ button({
           text: __("microsub.channels.create")
         }) }}
-        <a href="{{ request.baseUrl }}/channels" class="button button--secondary">
+        <a href="{{ baseUrl }}/channels" class="button button--secondary">
           {{ __("Cancel") }}
         </a>
       </div>

@@ -2,7 +2,7 @@
 
 {% block content %}
   <div class="compose">
-    <a href="{{ request.headers.referer or request.baseUrl + '/channels' }}" class="back-link">
+    <a href="{{ baseUrl }}/channels" class="back-link">
       {{ icon("arrow-left") }} {{ __("Back") }}
     </a>
 
@@ -24,7 +24,7 @@
     </div>
     {% endif %}
 
-    <form method="post" action="{{ request.baseUrl }}/compose">
+    <form method="post" action="{{ baseUrl }}/compose">
       {% if replyTo %}
       <input type="hidden" name="in-reply-to" value="{{ replyTo }}">
       {% endif %}
@@ -52,7 +52,7 @@
         {{ button({
           text: __("microsub.compose.submit")
         }) }}
-        <a href="{{ request.headers.referer or request.baseUrl + '/channels' }}" class="button button--secondary">
+        <a href="{{ baseUrl }}/channels" class="button button--secondary">
           {{ __("microsub.compose.cancel") }}
         </a>
       </div>

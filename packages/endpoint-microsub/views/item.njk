@@ -2,7 +2,7 @@
 
 {% block content %}
   <article class="item">
-    <a href="{{ request.headers.referer or request.baseUrl + '/channels' }}" class="back-link">
+    <a href="{{ baseUrl }}/channels" class="back-link">
       {{ icon("arrow-left") }} {{ __("Back") }}
     </a>
 
@@ -68,13 +68,13 @@
     {% endif %}
 
     <footer class="item__actions">
-      <a href="{{ request.baseUrl }}/compose?replyTo={{ item.url | urlencode }}" class="button button--secondary button--small">
+      <a href="{{ baseUrl }}/compose?replyTo={{ item.url | urlencode }}" class="button button--secondary button--small">
         {{ icon("reply") }} {{ __("microsub.item.reply") }}
       </a>
-      <a href="{{ request.baseUrl }}/compose?likeOf={{ item.url | urlencode }}" class="button button--secondary button--small">
+      <a href="{{ baseUrl }}/compose?likeOf={{ item.url | urlencode }}" class="button button--secondary button--small">
         {{ icon("heart") }} {{ __("microsub.item.like") }}
       </a>
-      <a href="{{ request.baseUrl }}/compose?repostOf={{ item.url | urlencode }}" class="button button--secondary button--small">
+      <a href="{{ baseUrl }}/compose?repostOf={{ item.url | urlencode }}" class="button button--secondary button--small">
         {{ icon("repost") }} {{ __("microsub.item.repost") }}
       </a>
       <a href="{{ item.url }}" class="button button--secondary button--small" target="_blank" rel="noopener">
