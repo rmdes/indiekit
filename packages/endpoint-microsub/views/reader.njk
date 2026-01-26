@@ -21,6 +21,9 @@
       {% endfor %}
     </ul>
     <p class="reader__actions">
+      <a href="{{ baseUrl }}/search" class="button button--primary">
+        {{ icon("syndicate") }} {{ __("microsub.feeds.follow") }}
+      </a>
       <a href="{{ baseUrl }}/channels/new" class="button button--secondary">
         {{ icon("createPost") }} {{ __("microsub.channels.new") }}
       </a>

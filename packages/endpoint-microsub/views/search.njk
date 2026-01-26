@@ -1,0 +1,58 @@
+{% extends "document.njk" %}
+
+{% block content %}
+  <div class="search">
+    <a href="{{ baseUrl }}/channels" class="back-link">
+      {{ icon("previous") }} {{ __("microsub.channels.title") }}
+    </a>
+
+    <h2>{{ __("microsub.search.title") }}</h2>
+
+    <form method="post" action="{{ baseUrl }}/search" class="search__form">
+      {{ input({
+        id: "query",
+        name: "query",
+        label: __("microsub.search.placeholder"),
+        type: "url",
+        required: true,
+        placeholder: "https://example.com",
+        autocomplete: "off",
+        value: query,
+        attributes: { autofocus: true }
+      }) }}
+      <div class="button-group">
+        {{ button({ text: __("microsub.search.submit") }) }}
+      </div>
+    </form>
+
+    {% if results and results.length > 0 %}
+    <div class="search__results">
+      <h3>{{ __("microsub.search.title") }}</h3>
+      <ul class="search__list">
+        {% for result in results %}
+        <li class="search__item">
+          <div class="search__feed">
+            <span class="search__url">{{ result.url }}</span>
+          </div>
+          <form method="post" action="{{ baseUrl }}/subscribe" class="search__subscribe">
+            <input type="hidden" name="url" value="{{ result.url }}">
+            <label for="channel-{{ loop.index }}" class="visually-hidden">{{ __("microsub.channels.title") }}</label>
+            <select name="channel" id="channel-{{ loop.index }}" class="select select--small">
+              {% for channel in channels %}
+              <option value="{{ channel.uid }}">{{ channel.name }}</option>
+              {% endfor %}
+            </select>
+            {{ button({
+              text: __("microsub.feeds.follow"),
+              classes: "button--small"
+            }) }}
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% elif searched %}
+    {{ prose({ text: __("microsub.search.noResults") }) }}
+    {% endif %}
+  </div>
+{% endblock %}
