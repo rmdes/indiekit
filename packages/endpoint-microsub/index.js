@@ -117,6 +117,8 @@ export default class MicrosubEndpoint {
    * @param {object} indiekit - Indiekit instance
    */
   init(indiekit) {
+    console.info("[Microsub] Initializing endpoint-microsub plugin");
+
     // Register MongoDB collections
     indiekit.addCollection("microsub_channels");
     indiekit.addCollection("microsub_feeds");
@@ -124,6 +126,8 @@ export default class MicrosubEndpoint {
     indiekit.addCollection("microsub_notifications");
     indiekit.addCollection("microsub_muted");
     indiekit.addCollection("microsub_blocked");
+
+    console.info("[Microsub] Registered MongoDB collections");
 
     // Register endpoint
     indiekit.addEndpoint(this);
@@ -136,7 +140,12 @@ export default class MicrosubEndpoint {
     // Start feed polling scheduler when server starts
     // This will be called after the server is ready
     if (indiekit.database) {
+      console.info("[Microsub] Database available, starting scheduler");
       startScheduler(indiekit);
+    } else {
+      console.warn(
+        "[Microsub] Database not available at init, scheduler not started",
+      );
     }
   }
 
