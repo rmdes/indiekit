@@ -7,65 +7,43 @@
     </a>
 
     <form method="post" action="{{ baseUrl }}/channels/{{ channel.uid }}/settings">
-      {{ fieldset({
-        legend: {
-          text: __("microsub.settings.excludeTypes"),
-          classes: "fieldset__legend--medium"
+      {{ checkboxes({
+        name: "excludeTypes",
+        values: channel.settings.excludeTypes,
+        fieldset: {
+          legend: __("microsub.settings.excludeTypes")
         },
-        hint: {
-          text: __("microsub.settings.excludeTypesHelp")
-        },
+        hint: __("microsub.settings.excludeTypesHelp"),
         items: [
           {
-            id: "excludeTypes-like",
-            name: "excludeTypes",
-            value: "like",
-            text: __("microsub.settings.types.like"),
-            checked: channel.settings.excludeTypes | includes("like")
+            label: __("microsub.settings.types.like"),
+            value: "like"
           },
           {
-            id: "excludeTypes-repost",
-            name: "excludeTypes",
-            value: "repost",
-            text: __("microsub.settings.types.repost"),
-            checked: channel.settings.excludeTypes | includes("repost")
+            label: __("microsub.settings.types.repost"),
+            value: "repost"
           },
           {
-            id: "excludeTypes-bookmark",
-            name: "excludeTypes",
-            value: "bookmark",
-            text: __("microsub.settings.types.bookmark"),
-            checked: channel.settings.excludeTypes | includes("bookmark")
+            label: __("microsub.settings.types.bookmark"),
+            value: "bookmark"
           },
           {
-            id: "excludeTypes-reply",
-            name: "excludeTypes",
-            value: "reply",
-            text: __("microsub.settings.types.reply"),
-            checked: channel.settings.excludeTypes | includes("reply")
+            label: __("microsub.settings.types.reply"),
+            value: "reply"
           },
           {
-            id: "excludeTypes-checkin",
-            name: "excludeTypes",
-            value: "checkin",
-            text: __("microsub.settings.types.checkin"),
-            checked: channel.settings.excludeTypes | includes("checkin")
+            label: __("microsub.settings.types.checkin"),
+            value: "checkin"
           }
         ]
-      }) | checkboxes }}
+      }) }}
 
-      {{ field({
-        label: {
-          text: __("microsub.settings.excludeRegex")
-        },
-        hint: {
-          text: __("microsub.settings.excludeRegexHelp")
-        },
-        input: {
-          id: "excludeRegex",
-          name: "excludeRegex",
-          value: channel.settings.excludeRegex
-        }
+      {{ input({
+        id: "excludeRegex",
+        name: "excludeRegex",
+        label: __("microsub.settings.excludeRegex"),
+        hint: __("microsub.settings.excludeRegexHelp"),
+        value: channel.settings.excludeRegex
       }) }}
 
       <div class="button-group">

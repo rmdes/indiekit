@@ -9,6 +9,7 @@
     },
     "channels": {
       "title": "Channels",
+      "name": "Channel name",
       "new": "New channel",
       "create": "Create channel",
       "delete": "Delete channel",

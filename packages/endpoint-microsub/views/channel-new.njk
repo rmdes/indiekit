@@ -7,17 +7,13 @@
     </a>
 
     <form method="post" action="{{ baseUrl }}/channels/new">
-      {{ field({
-        label: {
-          text: __("microsub.channels.new")
-        },
-        input: {
-          id: "name",
-          name: "name",
-          required: true,
-          autocomplete: "off",
-          autofocus: true
-        }
+      {{ input({
+        id: "name",
+        name: "name",
+        label: __("microsub.channels.name"),
+        required: true,
+        autocomplete: "off",
+        attributes: { autofocus: true }
       }) }}
 
       <div class="button-group">
