@@ -75,12 +75,13 @@ export class IndiekitError extends Error {
   }
 
   getError(name) {
-    name = name.replace(" ", "_").toLowerCase();
+    const code = String(name || "unknown")
+      .replaceAll(" ", "_")
+      .toLowerCase();
+    const error = errors[code];
 
-    const error = errors[name];
-    if (error) {
-      error.code = name;
-      return error;
-    }
+    if (!error) return;
+
+    return { ...error, code };
   }
 }
