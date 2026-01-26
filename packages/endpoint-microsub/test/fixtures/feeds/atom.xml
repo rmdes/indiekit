@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Example Atom Feed</title>
+  <subtitle>An example Atom feed for testing</subtitle>
+  <link href="https://example.com/atom.xml" rel="self" type="application/atom+xml"/>
+  <link href="https://example.com" rel="alternate" type="text/html"/>
+  <id>https://example.com/</id>
+  <updated>2024-01-15T10:30:00Z</updated>
+  <author>
+    <name>Jane Smith</name>
+    <uri>https://janesmith.com</uri>
+  </author>
+  <entry>
+    <title>Atom Entry One</title>
+    <link href="https://example.com/entries/one" rel="alternate" type="text/html"/>
+    <id>urn:uuid:entry-one-uuid</id>
+    <updated>2024-01-15T10:00:00Z</updated>
+    <published>2024-01-15T09:00:00Z</published>
+    <summary>Summary of the first entry</summary>
+    <content type="html">&lt;p&gt;Full content of the first entry.&lt;/p&gt;</content>
+    <author>
+      <name>Jane Smith</name>
+      <uri>https://janesmith.com</uri>
+    </author>
+    <category term="tech" label="Technology"/>
+  </entry>
+  <entry>
+    <title>Atom Entry Two</title>
+    <link href="https://example.com/entries/two" rel="alternate"/>
+    <id>urn:uuid:entry-two-uuid</id>
+    <updated>2024-01-14T15:00:00Z</updated>
+    <content type="text">Plain text content for entry two.</content>
+  </entry>
+  <entry>
+    <title>Entry with Media</title>
+    <link href="https://example.com/entries/media" rel="alternate"/>
+    <id>urn:uuid:entry-media-uuid</id>
+    <updated>2024-01-13T12:00:00Z</updated>
+    <link href="https://example.com/media/photo.jpg" rel="enclosure" type="image/jpeg"/>
+    <content type="html">&lt;p&gt;Entry with attached media.&lt;/p&gt;</content>
+  </entry>
+</feed>

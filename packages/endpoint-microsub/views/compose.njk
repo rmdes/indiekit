@@ -24,6 +24,12 @@
     </div>
     {% endif %}
 
+    {% if bookmarkOf %}
+    <div class="compose__context">
+      {{ icon("bookmark") }} {{ __("microsub.compose.bookmarkOf") }}: <a href="{{ bookmarkOf }}">{{ bookmarkOf }}</a>
+    </div>
+    {% endif %}
+
     <form method="post" action="{{ baseUrl }}/compose">
       {% if replyTo %}
       <input type="hidden" name="in-reply-to" value="{{ replyTo }}">
@@ -34,8 +40,11 @@
       {% if repostOf %}
       <input type="hidden" name="repost-of" value="{{ repostOf }}">
       {% endif %}
+      {% if bookmarkOf %}
+      <input type="hidden" name="bookmark-of" value="{{ bookmarkOf }}">
+      {% endif %}
 
-      {% if not likeOf and not repostOf %}
+      {% if not likeOf and not repostOf and not bookmarkOf %}
       {{ textarea({
         label: __("microsub.compose.content"),
         id: "content",

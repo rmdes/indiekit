@@ -10,10 +10,16 @@ import { getChannel } from "../storage/channels.js";
 import {
   createFeed,
   deleteFeed,
+  getFeedByUrl,
   getFeedsForChannel,
 } from "../storage/feeds.js";
+import { getUserId } from "../utils/auth.js";
 import { createFeedResponse } from "../utils/jf2.js";
 import { validateChannel, validateUrl } from "../utils/validation.js";
+import {
+  unsubscribe as websubUnsubscribe,
+  getCallbackUrl,
+} from "../websub/subscriber.js";
 
 /**
  * List followed feeds for a channel
@@ -23,7 +29,7 @@ import { validateChannel, validateUrl } from "../utils/validation.js";
  */
 export async function list(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { channel } = request.query;
 
   validateChannel(channel);
@@ -47,7 +53,7 @@ export async function list(request, response) {
  */
 export async function follow(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { channel, url } = request.body;
 
   validateChannel(channel);
@@ -67,11 +73,10 @@ export async function follow(request, response) {
   });
 
   // Trigger immediate fetch in background (don't await)
+  // This will also discover and subscribe to WebSub hubs
   refreshFeedNow(application, feed._id).catch((error) => {
     console.error(`[Microsub] Error fetching new feed ${url}:`, error.message);
   });
-
-  // TODO: Attempt WebSub subscription
 
   response.status(201).json(createFeedResponse(feed));
 }
@@ -84,7 +89,7 @@ export async function follow(request, response) {
  */
 export async function unfollow(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { channel, url } = request.body;
 
   validateChannel(channel);
@@ -95,12 +100,27 @@ export async function unfollow(request, response) {
     throw new IndiekitError("Channel not found", { status: 404 });
   }
 
+  // Get feed before deletion to check for WebSub subscription
+  const feed = await getFeedByUrl(application, channelDocument._id, url);
+
+  // Unsubscribe from WebSub hub if active
+  if (feed?.websub?.hub) {
+    const baseUrl = application.url;
+    if (baseUrl) {
+      const callbackUrl = getCallbackUrl(baseUrl, feed._id.toString());
+      websubUnsubscribe(application, feed, callbackUrl).catch((error) => {
+        console.error(
+          `[Microsub] WebSub unsubscribe error for ${url}:`,
+          error.message,
+        );
+      });
+    }
+  }
+
   const deleted = await deleteFeed(application, channelDocument._id, url);
   if (!deleted) {
     throw new IndiekitError("Feed not found", { status: 404 });
   }
-
-  // TODO: Cancel WebSub subscription if active
 
   response.json({ result: "ok" });
 }

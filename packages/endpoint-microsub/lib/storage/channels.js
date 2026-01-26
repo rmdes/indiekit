@@ -7,6 +7,9 @@ import { ObjectId } from "mongodb";
 
 import { generateChannelUid } from "../utils/jf2.js";
 
+import { deleteFeedsForChannel } from "./feeds.js";
+import { deleteItemsForChannel } from "./items.js";
+
 /**
  * Get channels collection from application
  * @param {object} application - Indiekit application
@@ -184,7 +187,7 @@ export async function updateChannel(application, uid, updates, userId) {
 }
 
 /**
- * Delete a channel
+ * Delete a channel and all its feeds and items
  * @param {object} application - Indiekit application
  * @param {string} uid - Channel UID
  * @param {string} [userId] - User ID
@@ -200,7 +203,20 @@ export async function deleteChannel(application, uid, userId) {
     return false;
   }
 
-  const result = await collection.deleteOne(query);
+  // Find the channel first to get its ObjectId
+  const channel = await collection.findOne(query);
+  if (!channel) {
+    return false;
+  }
+
+  // Cascade delete: items first, then feeds, then channel
+  const itemsDeleted = await deleteItemsForChannel(application, channel._id);
+  const feedsDeleted = await deleteFeedsForChannel(application, channel._id);
+  console.info(
+    `[Microsub] Deleted channel ${uid}: ${feedsDeleted} feeds, ${itemsDeleted} items`,
+  );
+
+  const result = await collection.deleteOne({ _id: channel._id });
   return result.deletedCount > 0;
 }
 

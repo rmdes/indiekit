@@ -4,6 +4,7 @@
  */
 
 import { deleteItemsByAuthorUrl } from "../storage/items.js";
+import { getUserId } from "../utils/auth.js";
 import { validateUrl } from "../utils/validation.js";
 
 /**
@@ -23,7 +24,7 @@ function getCollection(application) {
  */
 export async function list(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
 
   const collection = getCollection(application);
   const blocked = await collection.find({ userId }).toArray();
@@ -40,7 +41,7 @@ export async function list(request, response) {
  */
 export async function block(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { url } = request.body;
 
   validateUrl(url);
@@ -71,7 +72,7 @@ export async function block(request, response) {
  */
 export async function unblock(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { url } = request.body;
 
   validateUrl(url);

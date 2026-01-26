@@ -5,6 +5,7 @@
 
 import { IndiekitError } from "@indiekit/error";
 
+import { proxyItemImages } from "../media/proxy.js";
 import { getChannel } from "../storage/channels.js";
 import {
   getTimelineItems,
@@ -12,6 +13,7 @@ import {
   markItemsUnread,
   removeItems,
 } from "../storage/items.js";
+import { getUserId } from "../utils/auth.js";
 import {
   validateChannel,
   validateEntries,
@@ -26,7 +28,7 @@ import {
  */
 export async function get(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { channel, before, after, limit } = request.query;
 
   validateChannel(channel);
@@ -46,6 +48,14 @@ export async function get(request, response) {
     userId,
   });
 
+  // Proxy images if application URL is available
+  const baseUrl = application.url;
+  if (baseUrl && timeline.items) {
+    timeline.items = timeline.items.map((item) =>
+      proxyItemImages(item, baseUrl),
+    );
+  }
+
   response.json(timeline);
 }
 
@@ -57,7 +67,7 @@ export async function get(request, response) {
  */
 export async function action(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { method, channel } = request.body;
 
   validateChannel(channel);

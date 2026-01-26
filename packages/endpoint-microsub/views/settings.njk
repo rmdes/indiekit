@@ -55,5 +55,19 @@
         </a>
       </div>
     </form>
+
+    {% if channel.uid !== "notifications" %}
+    <hr class="divider">
+    <div class="danger-zone">
+      <h3>{{ __("microsub.settings.dangerZone") }}</h3>
+      <p class="hint">{{ __("microsub.settings.deleteWarning") }}</p>
+      <form method="post" action="{{ baseUrl }}/channels/{{ channel.uid }}/delete" onsubmit="return confirm('{{ __("microsub.settings.deleteConfirm") }}');">
+        {{ button({
+          text: __("microsub.settings.delete"),
+          classes: "button--danger"
+        }) }}
+      </form>
+    </div>
+    {% endif %}
   </div>
 {% endblock %}
