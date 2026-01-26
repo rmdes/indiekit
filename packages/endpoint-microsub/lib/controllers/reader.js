@@ -3,6 +3,7 @@
  * @module controllers/reader
  */
 
+import { discoverFeedsFromUrl } from "../feeds/fetcher.js";
 import { refreshFeedNow } from "../polling/scheduler.js";
 import {
   getChannels,
@@ -302,6 +303,89 @@ export async function submitCompose(request, response) {
   response.redirect(`${request.baseUrl}/channels`);
 }
 
+/**
+ * Search/discover feeds page
+ * @param {object} request - Express request
+ * @param {object} response - Express response
+ * @returns {Promise<void>}
+ */
+export async function searchPage(request, response) {
+  const { application } = request.app.locals;
+  const userId = request.session?.userId;
+
+  const channelList = await getChannels(application, userId);
+
+  response.render("search", {
+    title: request.__("microsub.search.title"),
+    channels: channelList,
+    baseUrl: request.baseUrl,
+  });
+}
+
+/**
+ * Search for feeds from URL
+ * @param {object} request - Express request
+ * @param {object} response - Express response
+ * @returns {Promise<void>}
+ */
+export async function searchFeeds(request, response) {
+  const { application } = request.app.locals;
+  const userId = request.session?.userId;
+  const { query } = request.body;
+
+  const channelList = await getChannels(application, userId);
+
+  let results = [];
+  if (query) {
+    try {
+      results = await discoverFeedsFromUrl(query);
+    } catch {
+      // Ignore discovery errors
+    }
+  }
+
+  response.render("search", {
+    title: request.__("microsub.search.title"),
+    channels: channelList,
+    query,
+    results,
+    searched: true,
+    baseUrl: request.baseUrl,
+  });
+}
+
+/**
+ * Subscribe to a feed from search results
+ * @param {object} request - Express request
+ * @param {object} response - Express response
+ * @returns {Promise<void>}
+ */
+export async function subscribe(request, response) {
+  const { application } = request.app.locals;
+  const userId = request.session?.userId;
+  const { url, channel: channelUid } = request.body;
+
+  const channelDocument = await getChannel(application, channelUid, userId);
+  if (!channelDocument) {
+    return response.status(404).render("404");
+  }
+
+  // Create feed subscription
+  const feed = await createFeed(application, {
+    channelId: channelDocument._id,
+    url,
+    title: undefined,
+    photo: undefined,
+  });
+
+  // Trigger immediate fetch in background
+  refreshFeedNow(application, feed._id).catch((error) => {
+    console.error(`[Microsub] Error fetching new feed ${url}:`, error.message);
+  });
+
+  response.redirect(`${request.baseUrl}/channels/${channelUid}/feeds`);
+}
+
 export const readerController = {
   index,
   channels,
@@ -316,4 +400,7 @@ export const readerController = {
   item,
   compose,
   submitCompose,
+  searchPage,
+  searchFeeds,
+  subscribe,
 };
