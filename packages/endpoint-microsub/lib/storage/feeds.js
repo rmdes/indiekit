@@ -5,6 +5,8 @@
 
 import { ObjectId } from "mongodb";
 
+import { deleteItemsForFeed } from "./items.js";
+
 /**
  * Get feeds collection from application
  * @param {object} application - Indiekit application
@@ -122,7 +124,7 @@ export async function updateFeed(application, id, updates) {
 }
 
 /**
- * Delete a feed subscription
+ * Delete a feed subscription and all its items
  * @param {object} application - Indiekit application
  * @param {ObjectId|string} channelId - Channel ObjectId
  * @param {string} url - Feed URL
@@ -133,7 +135,18 @@ export async function deleteFeed(application, channelId, url) {
   const objectId =
     typeof channelId === "string" ? new ObjectId(channelId) : channelId;
 
-  const result = await collection.deleteOne({ channelId: objectId, url });
+  // Find the feed first to get its ID for cascade delete
+  const feed = await collection.findOne({ channelId: objectId, url });
+  if (!feed) {
+    return false;
+  }
+
+  // Delete all items from this feed
+  const itemsDeleted = await deleteItemsForFeed(application, feed._id);
+  console.info(`[Microsub] Deleted ${itemsDeleted} items from feed ${url}`);
+
+  // Delete the feed itself
+  const result = await collection.deleteOne({ _id: feed._id });
   return result.deletedCount > 0;
 }
 
