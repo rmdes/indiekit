@@ -3,7 +3,7 @@
 {% block content %}
   <article class="item">
     <a href="{{ baseUrl }}/channels" class="back-link">
-      {{ icon("arrow-left") }} {{ __("Back") }}
+      {{ icon("previous") }} {{ __("Back") }}
     </a>
 
     {% if item.author %}
@@ -56,7 +56,7 @@
       <p>{{ icon("reply") }} {{ __("Reply to") }}: <a href="{{ item.inReplyTo[0] }}">{{ item.inReplyTo[0] }}</a></p>
       {% endif %}
       {% if item.likeOf %}
-      <p>{{ icon("heart") }} {{ __("Liked") }}: <a href="{{ item.likeOf[0] }}">{{ item.likeOf[0] }}</a></p>
+      <p>{{ icon("like") }} {{ __("Liked") }}: <a href="{{ item.likeOf[0] }}">{{ item.likeOf[0] }}</a></p>
       {% endif %}
       {% if item.repostOf %}
       <p>{{ icon("repost") }} {{ __("Reposted") }}: <a href="{{ item.repostOf[0] }}">{{ item.repostOf[0] }}</a></p>
@@ -72,13 +72,13 @@
         {{ icon("reply") }} {{ __("microsub.item.reply") }}
       </a>
       <a href="{{ baseUrl }}/compose?likeOf={{ item.url | urlencode }}" class="button button--secondary button--small">
-        {{ icon("heart") }} {{ __("microsub.item.like") }}
+        {{ icon("like") }} {{ __("microsub.item.like") }}
       </a>
       <a href="{{ baseUrl }}/compose?repostOf={{ item.url | urlencode }}" class="button button--secondary button--small">
         {{ icon("repost") }} {{ __("microsub.item.repost") }}
       </a>
       <a href="{{ item.url }}" class="button button--secondary button--small" target="_blank" rel="noopener">
-        {{ icon("external") }} {{ __("microsub.item.viewOriginal") }}
+        {{ icon("public") }} {{ __("microsub.item.viewOriginal") }}
       </a>
     </footer>
   </article>

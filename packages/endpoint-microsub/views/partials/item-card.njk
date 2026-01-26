@@ -18,7 +18,7 @@
     {% if item._type and item._type !== "entry" %}
     <div class="item-card__type">
       {% if item._type === "like" %}
-      {{ icon("heart") }} Liked
+      {{ icon("like") }} Liked
       {% elif item._type === "repost" %}
       {{ icon("repost") }} Reposted
       {% elif item._type === "reply" %}
@@ -58,7 +58,7 @@
       </time>
       {% endif %}
       {% if not item._is_read %}
-      <span class="item-card__unread">{{ icon("dot") }}</span>
+      <span class="item-card__unread" aria-label="Unread">●</span>
       {% endif %}
     </footer>
   </a>
