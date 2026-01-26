@@ -4,11 +4,11 @@
   <div class="channel">
     <header class="channel__header">
       <a href="{{ baseUrl }}/channels" class="back-link">
-        {{ icon("arrow-left") }} {{ __("microsub.channels.title") }}
+        {{ icon("previous") }} {{ __("microsub.channels.title") }}
       </a>
       <div class="channel__actions">
         <a href="{{ baseUrl }}/channels/{{ channel.uid }}/settings" class="button button--secondary button--small">
-          {{ icon("settings") }} {{ __("microsub.channels.settings") }}
+          {{ icon("updatePost") }} {{ __("microsub.channels.settings") }}
         </a>
       </div>
     </header>
@@ -24,12 +24,12 @@
     <nav class="timeline__paging" aria-label="Pagination">
       {% if paging.before %}
       <a href="?before={{ paging.before }}" class="button button--secondary">
-        {{ icon("arrow-left") }} {{ __("microsub.reader.newer") }}
+        {{ icon("previous") }} {{ __("microsub.reader.newer") }}
       </a>
       {% endif %}
       {% if paging.after %}
       <a href="?after={{ paging.after }}" class="button button--secondary">
-        {{ __("microsub.reader.older") }} {{ icon("arrow-right") }}
+        {{ __("microsub.reader.older") }} {{ icon("next") }}
       </a>
       {% endif %}
     </nav>

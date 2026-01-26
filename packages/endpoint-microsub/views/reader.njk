@@ -9,7 +9,7 @@
         <a href="{{ baseUrl }}/channels/{{ channel.uid }}" class="reader__channel-link">
           <span class="reader__channel-name">
             {% if channel.uid === "notifications" %}
-            {{ icon("bell") }}
+            {{ icon("mention") }}
             {% endif %}
             {{ channel.name }}
           </span>
@@ -22,7 +22,7 @@
     </ul>
     <p class="reader__actions">
       <a href="{{ baseUrl }}/channels/new" class="button button--secondary">
-        {{ icon("plus") }} {{ __("microsub.channels.new") }}
+        {{ icon("createPost") }} {{ __("microsub.channels.new") }}
       </a>
     </p>
     {% else %}

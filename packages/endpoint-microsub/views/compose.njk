@@ -3,7 +3,7 @@
 {% block content %}
   <div class="compose">
     <a href="{{ baseUrl }}/channels" class="back-link">
-      {{ icon("arrow-left") }} {{ __("Back") }}
+      {{ icon("previous") }} {{ __("Back") }}
     </a>
 
     {% if replyTo %}
@@ -14,7 +14,7 @@
 
     {% if likeOf %}
     <div class="compose__context">
-      {{ icon("heart") }} {{ __("microsub.compose.likeOf") }}: <a href="{{ likeOf }}">{{ likeOf }}</a>
+      {{ icon("like") }} {{ __("microsub.compose.likeOf") }}: <a href="{{ likeOf }}">{{ likeOf }}</a>
     </div>
     {% endif %}
 

@@ -3,7 +3,7 @@
 {% block content %}
   <div class="settings">
     <a href="{{ baseUrl }}/channels/{{ channel.uid }}" class="back-link">
-      {{ icon("arrow-left") }} {{ channel.name }}
+      {{ icon("previous") }} {{ channel.name }}
     </a>
 
     <form method="post" action="{{ baseUrl }}/channels/{{ channel.uid }}/settings">
