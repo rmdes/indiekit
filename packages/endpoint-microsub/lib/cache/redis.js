@@ -3,22 +3,56 @@
  * @module cache/redis
  */
 
+import Redis from "ioredis";
+
+let redisClient;
+
 /**
  * Get Redis client from application
  * @param {object} application - Indiekit application
  * @returns {object|undefined} Redis client or undefined
  */
 export function getRedisClient(application) {
-  // Check if Redis is configured
+  // Check if Redis is already initialized on the application
   if (application.redis) {
     return application.redis;
   }
 
+  // Check if we already created a client
+  if (redisClient) {
+    return redisClient;
+  }
+
   // Check for Redis URL in config
-  if (application.config?.application?.redisUrl) {
-    // Lazily create Redis connection
-    // This will be implemented when Redis support is added to Indiekit core
-    return;
+  const redisUrl = application.config?.application?.redisUrl;
+  if (redisUrl) {
+    try {
+      redisClient = new Redis(redisUrl, {
+        maxRetriesPerRequest: 3,
+        retryStrategy(times) {
+          const delay = Math.min(times * 50, 2000);
+          return delay;
+        },
+        lazyConnect: true,
+      });
+
+      redisClient.on("error", (error) => {
+        console.error("[Microsub] Redis error:", error.message);
+      });
+
+      redisClient.on("connect", () => {
+        console.info("[Microsub] Redis connected");
+      });
+
+      // Connect asynchronously
+      redisClient.connect().catch((error) => {
+        console.warn("[Microsub] Redis connection failed:", error.message);
+      });
+
+      return redisClient;
+    } catch (error) {
+      console.warn("[Microsub] Failed to initialize Redis:", error.message);
+    }
   }
 }
 
@@ -129,5 +163,19 @@ export async function subscribeToChannel(redis, channel, callback) {
     });
   } catch {
     // Ignore subscription errors
+  }
+}
+
+/**
+ * Cleanup Redis connection on shutdown
+ */
+export async function closeRedis() {
+  if (redisClient) {
+    try {
+      await redisClient.quit();
+      redisClient = undefined;
+    } catch {
+      // Ignore cleanup errors
+    }
   }
 }
