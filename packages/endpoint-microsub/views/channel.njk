@@ -7,6 +7,9 @@
         {{ icon("previous") }} {{ __("microsub.channels.title") }}
       </a>
       <div class="channel__actions">
+        <a href="{{ baseUrl }}/channels/{{ channel.uid }}/feeds" class="button button--secondary button--small">
+          {{ icon("syndicate") }} {{ __("microsub.feeds.title") }}
+        </a>
         <a href="{{ baseUrl }}/channels/{{ channel.uid }}/settings" class="button button--secondary button--small">
           {{ icon("updatePost") }} {{ __("microsub.channels.settings") }}
         </a>
