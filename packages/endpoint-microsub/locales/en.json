@@ -28,7 +28,9 @@
       "title": "Feeds",
       "follow": "Follow",
       "unfollow": "Unfollow",
-      "empty": "No feeds followed in this channel"
+      "empty": "No feeds followed in this channel",
+      "url": "Feed URL",
+      "urlPlaceholder": "https://example.com/feed.xml"
     },
     "item": {
       "reply": "Reply",
@@ -47,7 +49,7 @@
       "repostOf": "Reposting"
     },
     "settings": {
-      "title": "%{channel} settings",
+      "title": "{{channel}} settings",
       "excludeTypes": "Exclude interaction types",
       "excludeTypesHelp": "Select types of posts to hide from this channel",
       "excludeRegex": "Exclude pattern",

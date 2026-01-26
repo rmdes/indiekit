@@ -3,12 +3,18 @@
  * @module controllers/reader
  */
 
+import { refreshFeedNow } from "../polling/scheduler.js";
 import {
   getChannels,
   getChannel,
   createChannel,
   updateChannelSettings,
 } from "../storage/channels.js";
+import {
+  getFeedsForChannel,
+  createFeed,
+  deleteFeed,
+} from "../storage/feeds.js";
 import { getTimelineItems, getItemById } from "../storage/items.js";
 import {
   validateChannelName,
@@ -76,6 +82,7 @@ export async function createChannelAction(request, response) {
  * View channel timeline
  * @param {object} request - Express request
  * @param {object} response - Express response
+ * @returns {Promise<void>}
  */
 export async function channel(request, response) {
   const { application } = request.app.locals;
@@ -107,6 +114,7 @@ export async function channel(request, response) {
  * Channel settings form
  * @param {object} request - Express request
  * @param {object} response - Express response
+ * @returns {Promise<void>}
  */
 export async function settings(request, response) {
   const { application } = request.app.locals;
@@ -131,6 +139,7 @@ export async function settings(request, response) {
  * Update channel settings
  * @param {object} request - Express request
  * @param {object} response - Express response
+ * @returns {Promise<void>}
  */
 export async function updateSettings(request, response) {
   const { application } = request.app.locals;
@@ -162,9 +171,91 @@ export async function updateSettings(request, response) {
 }
 
 /**
+ * View feeds for a channel
+ * @param {object} request - Express request
+ * @param {object} response - Express response
+ * @returns {Promise<void>}
+ */
+export async function feeds(request, response) {
+  const { application } = request.app.locals;
+  const userId = request.session?.userId;
+  const { uid } = request.params;
+
+  const channelDocument = await getChannel(application, uid, userId);
+  if (!channelDocument) {
+    return response.status(404).render("404");
+  }
+
+  const feedList = await getFeedsForChannel(application, channelDocument._id);
+
+  response.render("feeds", {
+    title: request.__("microsub.feeds.title"),
+    channel: channelDocument,
+    feeds: feedList,
+    baseUrl: request.baseUrl,
+  });
+}
+
+/**
+ * Add feed to channel
+ * @param {object} request - Express request
+ * @param {object} response - Express response
+ * @returns {Promise<void>}
+ */
+export async function addFeed(request, response) {
+  const { application } = request.app.locals;
+  const userId = request.session?.userId;
+  const { uid } = request.params;
+  const { url } = request.body;
+
+  const channelDocument = await getChannel(application, uid, userId);
+  if (!channelDocument) {
+    return response.status(404).render("404");
+  }
+
+  // Create feed subscription
+  const feed = await createFeed(application, {
+    channelId: channelDocument._id,
+    url,
+    title: undefined,
+    photo: undefined,
+  });
+
+  // Trigger immediate fetch in background
+  refreshFeedNow(application, feed._id).catch((error) => {
+    console.error(`[Microsub] Error fetching new feed ${url}:`, error.message);
+  });
+
+  response.redirect(`${request.baseUrl}/channels/${uid}/feeds`);
+}
+
+/**
+ * Remove feed from channel
+ * @param {object} request - Express request
+ * @param {object} response - Express response
+ * @returns {Promise<void>}
+ */
+export async function removeFeed(request, response) {
+  const { application } = request.app.locals;
+  const userId = request.session?.userId;
+  const { uid } = request.params;
+  const { url } = request.body;
+
+  const channelDocument = await getChannel(application, uid, userId);
+  if (!channelDocument) {
+    return response.status(404).render("404");
+  }
+
+  await deleteFeed(application, channelDocument._id, url);
+
+  response.redirect(`${request.baseUrl}/channels/${uid}/feeds`);
+}
+
+/**
  * View single item
  * @param {object} request - Express request
  * @param {object} response - Express response
+ * @returns {Promise<void>}
  */
 export async function item(request, response) {
   const { application } = request.app.locals;
@@ -187,6 +278,7 @@ export async function item(request, response) {
  * Compose response form
  * @param {object} request - Express request
  * @param {object} response - Express response
+ * @returns {Promise<void>}
  */
 export async function compose(request, response) {
   const { replyTo, likeOf, repostOf } = request.query;
@@ -218,6 +310,9 @@ export const readerController = {
   channel,
   settings,
   updateSettings,
+  feeds,
+  addFeed,
+  removeFeed,
   item,
   compose,
   submitCompose,

@@ -78,6 +78,12 @@ export default class MicrosubEndpoint {
       "/channels/:uid/settings",
       readerController.updateSettings,
     );
+    readerRouter.get("/channels/:uid/feeds", readerController.feeds);
+    readerRouter.post("/channels/:uid/feeds", readerController.addFeed);
+    readerRouter.post(
+      "/channels/:uid/feeds/remove",
+      readerController.removeFeed,
+    );
     readerRouter.get("/item/:id", readerController.item);
     readerRouter.get("/compose", readerController.compose);
     readerRouter.post("/compose", readerController.submitCompose);
