@@ -195,7 +195,7 @@ export async function getItemsByUids(application, uids, userId) {
  * Mark items as read
  * @param {object} application - Indiekit application
  * @param {ObjectId|string} channelId - Channel ObjectId
- * @param {Array} entryIds - Array of entry IDs to mark as read
+ * @param {Array} entryIds - Array of entry IDs to mark as read (can be ObjectId, uid, or URL)
  * @param {string} userId - User ID
  * @returns {Promise<number>} Number of items updated
  */
@@ -204,6 +204,12 @@ export async function markItemsRead(application, channelId, entryIds, userId) {
   const channelObjectId =
     typeof channelId === "string" ? new ObjectId(channelId) : channelId;
 
+  console.info(
+    `[Microsub] markItemsRead called for channel ${channelId}, entries:`,
+    entryIds,
+    `userId: ${userId}`,
+  );
+
   // Handle "last-read-entry" special value
   if (entryIds.includes("last-read-entry")) {
     // Mark all items in channel as read
@@ -211,26 +217,39 @@ export async function markItemsRead(application, channelId, entryIds, userId) {
       { channelId: channelObjectId },
       { $addToSet: { readBy: userId } },
     );
+    console.info(
+      `[Microsub] Marked all items as read: ${result.modifiedCount} updated`,
+    );
     return result.modifiedCount;
   }
 
   // Convert string IDs to ObjectIds where possible
-  const objectIds = entryIds.map((id) => {
-    try {
-      return new ObjectId(id);
-    } catch {
-      return id;
-    }
-  });
+  const objectIds = entryIds
+    .map((id) => {
+      try {
+        return new ObjectId(id);
+      } catch {
+        return;
+      }
+    })
+    .filter(Boolean);
 
+  // Build query to match by _id, uid, or url (Microsub spec uses URLs as entry identifiers)
   const result = await collection.updateMany(
     {
       channelId: channelObjectId,
-      $or: [{ _id: { $in: objectIds } }, { uid: { $in: entryIds } }],
+      $or: [
+        ...(objectIds.length > 0 ? [{ _id: { $in: objectIds } }] : []),
+        { uid: { $in: entryIds } },
+        { url: { $in: entryIds } },
+      ],
     },
     { $addToSet: { readBy: userId } },
   );
 
+  console.info(
+    `[Microsub] markItemsRead result: ${result.modifiedCount} items updated`,
+  );
   return result.modifiedCount;
 }
 
@@ -238,7 +257,7 @@ export async function markItemsRead(application, channelId, entryIds, userId) {
  * Mark items as unread
  * @param {object} application - Indiekit application
  * @param {ObjectId|string} channelId - Channel ObjectId
- * @param {Array} entryIds - Array of entry IDs to mark as unread
+ * @param {Array} entryIds - Array of entry IDs to mark as unread (can be ObjectId, uid, or URL)
  * @param {string} userId - User ID
  * @returns {Promise<number>} Number of items updated
  */
@@ -252,18 +271,26 @@ export async function markItemsUnread(
   const channelObjectId =
     typeof channelId === "string" ? new ObjectId(channelId) : channelId;
 
-  const objectIds = entryIds.map((id) => {
-    try {
-      return new ObjectId(id);
-    } catch {
-      return id;
-    }
-  });
+  // Convert string IDs to ObjectIds where possible
+  const objectIds = entryIds
+    .map((id) => {
+      try {
+        return new ObjectId(id);
+      } catch {
+        return;
+      }
+    })
+    .filter(Boolean);
 
+  // Match by _id, uid, or url
   const result = await collection.updateMany(
     {
       channelId: channelObjectId,
-      $or: [{ _id: { $in: objectIds } }, { uid: { $in: entryIds } }],
+      $or: [
+        ...(objectIds.length > 0 ? [{ _id: { $in: objectIds } }] : []),
+        { uid: { $in: entryIds } },
+        { url: { $in: entryIds } },
+      ],
     },
     { $pull: { readBy: userId } },
   );
@@ -275,7 +302,7 @@ export async function markItemsUnread(
  * Remove items from channel
  * @param {object} application - Indiekit application
  * @param {ObjectId|string} channelId - Channel ObjectId
- * @param {Array} entryIds - Array of entry IDs to remove
+ * @param {Array} entryIds - Array of entry IDs to remove (can be ObjectId, uid, or URL)
  * @returns {Promise<number>} Number of items removed
  */
 export async function removeItems(application, channelId, entryIds) {
@@ -283,17 +310,25 @@ export async function removeItems(application, channelId, entryIds) {
   const channelObjectId =
     typeof channelId === "string" ? new ObjectId(channelId) : channelId;
 
-  const objectIds = entryIds.map((id) => {
-    try {
-      return new ObjectId(id);
-    } catch {
-      return id;
-    }
-  });
+  // Convert string IDs to ObjectIds where possible
+  const objectIds = entryIds
+    .map((id) => {
+      try {
+        return new ObjectId(id);
+      } catch {
+        return;
+      }
+    })
+    .filter(Boolean);
 
+  // Match by _id, uid, or url
   const result = await collection.deleteMany({
     channelId: channelObjectId,
-    $or: [{ _id: { $in: objectIds } }, { uid: { $in: entryIds } }],
+    $or: [
+      ...(objectIds.length > 0 ? [{ _id: { $in: objectIds } }] : []),
+      { uid: { $in: entryIds } },
+      { url: { $in: entryIds } },
+    ],
   });
 
   return result.deletedCount;
@@ -411,11 +446,34 @@ export async function deleteItemsByAuthorUrl(application, userId, authorUrl) {
 export async function createIndexes(application) {
   const collection = getCollection(application);
 
+  // Primary query indexes
   await collection.createIndex({ channelId: 1, published: -1 });
   await collection.createIndex({ channelId: 1, uid: 1 }, { unique: true });
   await collection.createIndex({ feedId: 1 });
+
+  // URL matching index for mark_read operations
+  await collection.createIndex({ channelId: 1, url: 1 });
+
+  // Full-text search index with weights
+  // Higher weight = more importance in relevance scoring
   await collection.createIndex(
-    { name: "text", "content.text": "text", summary: "text" },
-    { name: "text_search" },
+    {
+      name: "text",
+      "content.text": "text",
+      "content.html": "text",
+      summary: "text",
+      "author.name": "text",
+    },
+    {
+      name: "text_search",
+      weights: {
+        name: 10, // Titles most important
+        summary: 5, // Summaries second
+        "content.text": 3, // Content third
+        "content.html": 2, // HTML content lower
+        "author.name": 1, // Author names lowest
+      },
+      default_language: "english",
+    },
   );
 }

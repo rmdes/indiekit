@@ -4,7 +4,9 @@ import express from "express";
 
 import { microsubController } from "./lib/controllers/microsub.js";
 import { readerController } from "./lib/controllers/reader.js";
+import { handleMediaProxy } from "./lib/media/proxy.js";
 import { startScheduler, stopScheduler } from "./lib/polling/scheduler.js";
+import { createIndexes } from "./lib/storage/items.js";
 import { webmentionReceiver } from "./lib/webmention/receiver.js";
 import { websubHandler } from "./lib/websub/handler.js";
 
@@ -67,6 +69,9 @@ export default class MicrosubEndpoint {
     // Webmention receiving endpoint
     router.post("/webmention", webmentionReceiver.receive);
 
+    // Media proxy endpoint
+    router.get("/media/:hash", handleMediaProxy);
+
     // Reader UI routes (mounted as sub-router for correct baseUrl)
     readerRouter.get("/", readerController.index);
     readerRouter.get("/channels", readerController.channels);
@@ -78,6 +83,7 @@ export default class MicrosubEndpoint {
       "/channels/:uid/settings",
       readerController.updateSettings,
     );
+    readerRouter.post("/channels/:uid/delete", readerController.deleteChannel);
     readerRouter.get("/channels/:uid/feeds", readerController.feeds);
     readerRouter.post("/channels/:uid/feeds", readerController.addFeed);
     readerRouter.post(
@@ -108,6 +114,9 @@ export default class MicrosubEndpoint {
 
     // Webmention endpoint must be public
     publicRouter.post("/webmention", webmentionReceiver.receive);
+
+    // Media proxy must be public for images to load
+    publicRouter.get("/media/:hash", handleMediaProxy);
 
     return publicRouter;
   }
@@ -142,6 +151,11 @@ export default class MicrosubEndpoint {
     if (indiekit.database) {
       console.info("[Microsub] Database available, starting scheduler");
       startScheduler(indiekit);
+
+      // Create indexes for optimal performance (runs in background)
+      createIndexes(indiekit).catch((error) => {
+        console.warn("[Microsub] Index creation failed:", error.message);
+      });
     } else {
       console.warn(
         "[Microsub] Database not available at init, scheduler not started",

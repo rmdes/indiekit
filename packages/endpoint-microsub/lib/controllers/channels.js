@@ -13,6 +13,7 @@ import {
   deleteChannel,
   reorderChannels,
 } from "../storage/channels.js";
+import { getUserId } from "../utils/auth.js";
 import {
   validateChannel,
   validateChannelName,
@@ -27,7 +28,7 @@ import {
  */
 export async function list(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
 
   const channels = await getChannels(application, userId);
 
@@ -42,7 +43,7 @@ export async function list(request, response) {
  */
 export async function action(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { method, name, uid } = request.body;
 
   // Delete channel
@@ -113,7 +114,7 @@ export async function action(request, response) {
  */
 export async function get(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { uid } = request.params;
 
   validateChannel(uid);

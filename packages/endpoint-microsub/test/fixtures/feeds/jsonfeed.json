@@ -1,0 +1,60 @@
+{
+  "version": "https://jsonfeed.org/version/1.1",
+  "title": "Example JSON Feed",
+  "home_page_url": "https://example.com",
+  "feed_url": "https://example.com/feed.json",
+  "description": "An example JSON Feed for testing",
+  "icon": "https://example.com/icon.png",
+  "favicon": "https://example.com/favicon.ico",
+  "authors": [
+    {
+      "name": "Bob Wilson",
+      "url": "https://bobwilson.com",
+      "avatar": "https://bobwilson.com/avatar.jpg"
+    }
+  ],
+  "language": "en-US",
+  "items": [
+    {
+      "id": "json-item-1",
+      "url": "https://example.com/json/first",
+      "title": "JSON Feed Post One",
+      "content_html": "<p>HTML content for JSON Feed item.</p>",
+      "content_text": "Text content for JSON Feed item.",
+      "summary": "A summary of the first JSON Feed item",
+      "date_published": "2024-01-15T10:00:00Z",
+      "date_modified": "2024-01-15T11:00:00Z",
+      "authors": [
+        {
+          "name": "Bob Wilson",
+          "url": "https://bobwilson.com"
+        }
+      ],
+      "tags": ["json", "testing", "feeds"]
+    },
+    {
+      "id": "json-item-2",
+      "url": "https://example.com/json/second",
+      "title": "JSON Feed Post Two",
+      "content_text": "Plain text only content.",
+      "date_published": "2024-01-14T08:00:00Z"
+    },
+    {
+      "id": "json-item-3",
+      "url": "https://example.com/json/media",
+      "title": "JSON Feed with Attachments",
+      "content_html": "<p>Post with media attachments.</p>",
+      "date_published": "2024-01-13T06:00:00Z",
+      "image": "https://example.com/media/featured.jpg",
+      "attachments": [
+        {
+          "url": "https://example.com/media/audio.mp3",
+          "mime_type": "audio/mpeg",
+          "title": "Podcast Episode",
+          "size_in_bytes": 5000000,
+          "duration_in_seconds": 1800
+        }
+      ]
+    }
+  ]
+}

@@ -9,6 +9,10 @@ import { getChannel } from "../storage/channels.js";
 import { updateFeedAfterFetch, updateFeedWebsub } from "../storage/feeds.js";
 import { passesRegexFilter, passesTypeFilter } from "../storage/filters.js";
 import { addItem } from "../storage/items.js";
+import {
+  subscribe as websubSubscribe,
+  getCallbackUrl,
+} from "../websub/subscriber.js";
 
 import { calculateNewTier } from "./tier.js";
 
@@ -123,13 +127,37 @@ export async function processFeed(application, feed) {
       updateData,
     );
 
-    // Handle WebSub hub discovery
+    // Handle WebSub hub discovery and auto-subscription
     if (parsed.hub && (!feed.websub || feed.websub.hub !== parsed.hub)) {
       await updateFeedWebsub(application, feed._id, {
         hub: parsed.hub,
         topic: parsed.self || feed.url,
       });
-      // TODO: Subscribe to hub
+
+      // Auto-subscribe to WebSub hub if we have a callback URL
+      const baseUrl = application.url;
+      if (baseUrl) {
+        const callbackUrl = getCallbackUrl(baseUrl, feed._id.toString());
+        const updatedFeed = {
+          ...feed,
+          websub: { hub: parsed.hub, topic: parsed.self || feed.url },
+        };
+
+        websubSubscribe(application, updatedFeed, callbackUrl)
+          .then((subscribed) => {
+            if (subscribed) {
+              console.info(
+                `[Microsub] WebSub subscription initiated for ${feed.url}`,
+              );
+            }
+          })
+          .catch((error) => {
+            console.error(
+              `[Microsub] WebSub subscription error for ${feed.url}:`,
+              error.message,
+            );
+          });
+      }
     }
 
     result.success = true;

@@ -9,6 +9,7 @@ import {
   sendEvent,
   subscribeClient,
 } from "../realtime/broker.js";
+import { getUserId } from "../utils/auth.js";
 
 /**
  * SSE stream endpoint
@@ -18,7 +19,7 @@ import {
  */
 export async function stream(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
 
   // Set SSE headers
   response.setHeader("Content-Type", "text/event-stream");

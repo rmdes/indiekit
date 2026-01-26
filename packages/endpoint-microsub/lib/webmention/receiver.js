@@ -3,6 +3,8 @@
  * @module webmention/receiver
  */
 
+import { getUserId } from "../utils/auth.js";
+
 import { processWebmention } from "./processor.js";
 
 /**
@@ -33,7 +35,7 @@ export async function receive(request, response) {
   }
 
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
 
   // Return 202 Accepted immediately (processing asynchronously)
   response.status(202).json({

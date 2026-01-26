@@ -8,6 +8,7 @@ import { IndiekitError } from "@indiekit/error";
 import { discoverFeeds } from "../feeds/hfeed.js";
 import { searchWithFallback } from "../search/query.js";
 import { getChannel } from "../storage/channels.js";
+import { getUserId } from "../utils/auth.js";
 import { validateChannel, validateUrl } from "../utils/validation.js";
 
 /**
@@ -77,7 +78,7 @@ export async function discover(request, response) {
  */
 export async function search(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { query, channel } = request.body;
 
   if (!query) {

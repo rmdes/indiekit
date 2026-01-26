@@ -10,6 +10,7 @@ import {
   getChannel,
   createChannel,
   updateChannelSettings,
+  deleteChannel,
 } from "../storage/channels.js";
 import {
   getFeedsForChannel,
@@ -17,6 +18,7 @@ import {
   deleteFeed,
 } from "../storage/feeds.js";
 import { getTimelineItems, getItemById } from "../storage/items.js";
+import { getUserId } from "../utils/auth.js";
 import {
   validateChannelName,
   validateExcludeTypes,
@@ -39,7 +41,7 @@ export async function index(request, response) {
  */
 export async function channels(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
 
   const channelList = await getChannels(application, userId);
 
@@ -69,7 +71,7 @@ export async function newChannel(request, response) {
  */
 export async function createChannelAction(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { name } = request.body;
 
   validateChannelName(name);
@@ -87,7 +89,7 @@ export async function createChannelAction(request, response) {
  */
 export async function channel(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { uid } = request.params;
   const { before, after } = request.query;
 
@@ -119,7 +121,7 @@ export async function channel(request, response) {
  */
 export async function settings(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { uid } = request.params;
 
   const channelDocument = await getChannel(application, uid, userId);
@@ -144,7 +146,7 @@ export async function settings(request, response) {
  */
 export async function updateSettings(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { uid } = request.params;
   const { excludeTypes, excludeRegex } = request.body;
 
@@ -172,6 +174,32 @@ export async function updateSettings(request, response) {
 }
 
 /**
+ * Delete channel
+ * @param {object} request - Express request
+ * @param {object} response - Express response
+ * @returns {Promise<void>}
+ */
+export async function deleteChannelAction(request, response) {
+  const { application } = request.app.locals;
+  const userId = getUserId(request);
+  const { uid } = request.params;
+
+  // Don't allow deleting notifications channel
+  if (uid === "notifications") {
+    return response.redirect(`${request.baseUrl}/channels`);
+  }
+
+  const channelDocument = await getChannel(application, uid, userId);
+  if (!channelDocument) {
+    return response.status(404).render("404");
+  }
+
+  await deleteChannel(application, uid, userId);
+
+  response.redirect(`${request.baseUrl}/channels`);
+}
+
+/**
  * View feeds for a channel
  * @param {object} request - Express request
  * @param {object} response - Express response
@@ -179,7 +207,7 @@ export async function updateSettings(request, response) {
  */
 export async function feeds(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { uid } = request.params;
 
   const channelDocument = await getChannel(application, uid, userId);
@@ -205,7 +233,7 @@ export async function feeds(request, response) {
  */
 export async function addFeed(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { uid } = request.params;
   const { url } = request.body;
 
@@ -238,7 +266,7 @@ export async function addFeed(request, response) {
  */
 export async function removeFeed(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { uid } = request.params;
   const { url } = request.body;
 
@@ -260,7 +288,7 @@ export async function removeFeed(request, response) {
  */
 export async function item(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { id } = request.params;
 
   const itemDocument = await getItemById(application, id, userId);
@@ -282,25 +310,121 @@ export async function item(request, response) {
  * @returns {Promise<void>}
  */
 export async function compose(request, response) {
-  const { replyTo, likeOf, repostOf } = request.query;
+  const { replyTo, likeOf, repostOf, bookmarkOf } = request.query;
 
   response.render("compose", {
     title: request.__("microsub.compose.title"),
     replyTo,
     likeOf,
     repostOf,
+    bookmarkOf,
     baseUrl: request.baseUrl,
   });
 }
 
 /**
- * Submit composed response
+ * Submit composed response via Micropub
  * @param {object} request - Express request
  * @param {object} response - Express response
+ * @returns {Promise<void>}
  */
 export async function submitCompose(request, response) {
-  // TODO: Submit via Micropub
-  response.redirect(`${request.baseUrl}/channels`);
+  const { application } = request.app.locals;
+  const { content } = request.body;
+  const inReplyTo = request.body["in-reply-to"];
+  const likeOf = request.body["like-of"];
+  const repostOf = request.body["repost-of"];
+  const bookmarkOf = request.body["bookmark-of"];
+
+  // Get Micropub endpoint
+  const micropubEndpoint = application.micropubEndpoint;
+  if (!micropubEndpoint) {
+    return response.status(500).render("error", {
+      title: "Error",
+      error: { message: "Micropub endpoint not configured" },
+    });
+  }
+
+  // Build absolute Micropub URL
+  const micropubUrl = micropubEndpoint.startsWith("http")
+    ? micropubEndpoint
+    : new URL(micropubEndpoint, application.url).href;
+
+  // Get auth token from session
+  const token = request.session?.access_token;
+  if (!token) {
+    return response.redirect("/session/login?redirect=" + request.originalUrl);
+  }
+
+  // Build Micropub request body
+  const micropubData = new URLSearchParams();
+  micropubData.append("h", "entry");
+
+  if (likeOf) {
+    // Like post (no content needed)
+    micropubData.append("like-of", likeOf);
+  } else if (repostOf) {
+    // Repost (no content needed)
+    micropubData.append("repost-of", repostOf);
+  } else if (bookmarkOf) {
+    // Bookmark (content optional)
+    micropubData.append("bookmark-of", bookmarkOf);
+    if (content) {
+      micropubData.append("content", content);
+    }
+  } else if (inReplyTo) {
+    // Reply
+    micropubData.append("in-reply-to", inReplyTo);
+    micropubData.append("content", content || "");
+  } else {
+    // Regular note
+    micropubData.append("content", content || "");
+  }
+
+  try {
+    const micropubResponse = await fetch(micropubUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "application/json",
+      },
+      body: micropubData.toString(),
+    });
+
+    if (
+      micropubResponse.ok ||
+      micropubResponse.status === 201 ||
+      micropubResponse.status === 202
+    ) {
+      // Success - get the Location header for the new post URL
+      const location = micropubResponse.headers.get("Location");
+      console.info(
+        `[Microsub] Created post via Micropub: ${location || "success"}`,
+      );
+
+      // Redirect back to reader with success message
+      return response.redirect(`${request.baseUrl}/channels`);
+    }
+
+    // Handle error
+    const errorBody = await micropubResponse.text();
+    console.error(
+      `[Microsub] Micropub error: ${micropubResponse.status} ${errorBody}`,
+    );
+
+    return response.status(micropubResponse.status).render("error", {
+      title: "Error",
+      error: { message: `Micropub error: ${micropubResponse.statusText}` },
+    });
+  } catch (error) {
+    console.error(`[Microsub] Micropub request failed: ${error.message}`);
+
+    return response.status(500).render("error", {
+      title: "Error",
+      error: { message: `Failed to create post: ${error.message}` },
+    });
+  }
 }
 
 /**
@@ -311,7 +435,7 @@ export async function submitCompose(request, response) {
  */
 export async function searchPage(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
 
   const channelList = await getChannels(application, userId);
 
@@ -330,7 +454,7 @@ export async function searchPage(request, response) {
  */
 export async function searchFeeds(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { query } = request.body;
 
   const channelList = await getChannels(application, userId);
@@ -362,7 +486,7 @@ export async function searchFeeds(request, response) {
  */
 export async function subscribe(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { url, channel: channelUid } = request.body;
 
   const channelDocument = await getChannel(application, channelUid, userId);
@@ -394,6 +518,7 @@ export const readerController = {
   channel,
   settings,
   updateSettings,
+  deleteChannel: deleteChannelAction,
   feeds,
   addFeed,
   removeFeed,

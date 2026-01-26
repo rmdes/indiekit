@@ -46,7 +46,8 @@
       "cancel": "Cancel",
       "replyTo": "Replying to",
       "likeOf": "Liking",
-      "repostOf": "Reposting"
+      "repostOf": "Reposting",
+      "bookmarkOf": "Bookmarking"
     },
     "settings": {
       "title": "{{channel}} settings",
@@ -55,6 +56,10 @@
       "excludeRegex": "Exclude pattern",
       "excludeRegexHelp": "Regular expression to filter out matching content",
       "save": "Save settings",
+      "dangerZone": "Danger zone",
+      "deleteWarning": "Deleting this channel will permanently remove all feeds and items. This action cannot be undone.",
+      "deleteConfirm": "Are you sure you want to delete this channel and all its content?",
+      "delete": "Delete channel",
       "types": {
         "like": "Likes",
         "repost": "Reposts",

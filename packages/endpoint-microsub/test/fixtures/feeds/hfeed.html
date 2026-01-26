@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Example h-feed</title>
+  <link rel="alternate" type="application/json" href="https://example.com/feed.json">
+</head>
+<body>
+  <div class="h-feed">
+    <h1 class="p-name">Example Microformats Feed</h1>
+    <p class="p-summary">An h-feed for testing microformats parsing</p>
+
+    <article class="h-entry">
+      <h2 class="p-name">H-Entry Post One</h2>
+      <a class="u-url" href="https://example.com/hfeed/one">Permalink</a>
+      <time class="dt-published" datetime="2024-01-15T10:00:00Z">January 15, 2024</time>
+      <div class="e-content">
+        <p>This is the content of the first h-entry.</p>
+      </div>
+      <p class="p-summary">Summary of h-entry one</p>
+      <div class="p-author h-card">
+        <a class="p-name u-url" href="https://alice.example.com">Alice Example</a>
+        <img class="u-photo" src="https://alice.example.com/photo.jpg" alt="Alice">
+      </div>
+      <a class="p-category" href="/tags/indieweb">indieweb</a>
+      <a class="p-category" href="/tags/microformats">microformats</a>
+    </article>
+
+    <article class="h-entry">
+      <h2 class="p-name">A Like Post</h2>
+      <a class="u-url" href="https://example.com/hfeed/like">Permalink</a>
+      <time class="dt-published" datetime="2024-01-14T09:00:00Z">January 14, 2024</time>
+      <a class="u-like-of" href="https://someone.com/post/123">Liked this post</a>
+      <div class="p-author h-card">
+        <span class="p-name">Alice Example</span>
+      </div>
+    </article>
+
+    <article class="h-entry">
+      <h2 class="p-name">A Reply</h2>
+      <a class="u-url" href="https://example.com/hfeed/reply">Permalink</a>
+      <time class="dt-published" datetime="2024-01-13T08:00:00Z">January 13, 2024</time>
+      <a class="u-in-reply-to" href="https://other.com/post/456">In reply to</a>
+      <div class="e-content">
+        <p>This is my reply to your post!</p>
+      </div>
+    </article>
+
+    <article class="h-entry">
+      <h2 class="p-name">Post with Photo</h2>
+      <a class="u-url" href="https://example.com/hfeed/photo">Permalink</a>
+      <time class="dt-published" datetime="2024-01-12T07:00:00Z">January 12, 2024</time>
+      <img class="u-photo" src="https://example.com/photos/sunset.jpg" alt="Sunset">
+      <div class="e-content">
+        <p>Beautiful sunset today!</p>
+      </div>
+    </article>
+  </div>
+</body>
+</html>

@@ -5,6 +5,7 @@
 
 import { IndiekitError } from "@indiekit/error";
 
+import { getUserId } from "../utils/auth.js";
 import { validateChannel, validateUrl } from "../utils/validation.js";
 
 /**
@@ -24,7 +25,7 @@ function getCollection(application) {
  */
 export async function list(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { channel } = request.query;
 
   // Channel can be "global" or a specific channel UID
@@ -58,7 +59,7 @@ export async function list(request, response) {
  */
 export async function mute(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { channel, url } = request.body;
 
   validateUrl(url);
@@ -99,7 +100,7 @@ export async function mute(request, response) {
  */
 export async function unmute(request, response) {
   const { application } = request.app.locals;
-  const userId = request.session?.userId;
+  const userId = getUserId(request);
   const { channel, url } = request.body;
 
   validateUrl(url);
