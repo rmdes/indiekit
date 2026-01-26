@@ -37,14 +37,11 @@
 
       {% if not likeOf and not repostOf %}
       {{ textarea({
-        label: {
-          text: __("microsub.compose.content"),
-          classes: "label--visuallyhidden"
-        },
+        label: __("microsub.compose.content"),
         id: "content",
         name: "content",
         rows: 5,
-        autofocus: true
+        attributes: { autofocus: true }
       }) }}
       {% endif %}
 
