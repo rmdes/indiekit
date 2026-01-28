@@ -1,10 +1,12 @@
-{% extends "document.njk" %}
+{% extends "layouts/reader.njk" %}
 
-{% block content %}
+{% block reader %}
   <div class="channel-new">
     <a href="{{ baseUrl }}/channels" class="back-link">
       {{ icon("previous") }} {{ __("microsub.channels.title") }}
     </a>
+
+    <h2>{{ __("microsub.channels.new") }}</h2>
 
     <form method="post" action="{{ baseUrl }}/channels/new">
       {{ input({
