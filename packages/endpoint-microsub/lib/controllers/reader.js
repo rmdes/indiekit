@@ -346,6 +346,19 @@ export async function submitCompose(request, response) {
   const repostOf = request.body["repost-of"];
   const bookmarkOf = request.body["bookmark-of"];
 
+  // Debug logging
+  console.info(
+    "[Microsub] submitCompose request.body:",
+    JSON.stringify(request.body),
+  );
+  console.info("[Microsub] Extracted values:", {
+    content,
+    inReplyTo,
+    likeOf,
+    repostOf,
+    bookmarkOf,
+  });
+
   // Get Micropub endpoint
   const micropubEndpoint = application.micropubEndpoint;
   if (!micropubEndpoint) {
@@ -390,6 +403,12 @@ export async function submitCompose(request, response) {
     // Regular note
     micropubData.append("content", content || "");
   }
+
+  // Debug: log what we're sending
+  console.info("[Microsub] Sending to Micropub:", {
+    url: micropubUrl,
+    body: micropubData.toString(),
+  });
 
   try {
     const micropubResponse = await fetch(micropubUrl, {
