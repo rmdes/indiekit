@@ -150,7 +150,7 @@ function extractSelfFromLinkHeader(linkHeader) {
  * @returns {Promise<object>} Parsed feed
  */
 export async function fetchAndParseFeed(url, options = {}) {
-  const { parseFeed } = await import("./parser.js");
+  const { parseFeed, detectFeedType } = await import("./parser.js");
 
   const result = await fetchFeed(url, options);
 
@@ -159,6 +159,32 @@ export async function fetchAndParseFeed(url, options = {}) {
       ...result,
       items: [],
     };
+  }
+
+  // Check if we got a parseable feed
+  const feedType = detectFeedType(result.content, result.contentType);
+
+  // If we got ActivityPub or unknown, try common feed paths
+  if (feedType === "activitypub" || feedType === "unknown") {
+    const fallbackFeed = await tryCommonFeedPaths(url, options);
+    if (fallbackFeed) {
+      // Fetch and parse the discovered feed
+      const feedResult = await fetchFeed(fallbackFeed.url, options);
+      if (!feedResult.notModified) {
+        const parsed = await parseFeed(feedResult.content, fallbackFeed.url, {
+          contentType: feedResult.contentType,
+        });
+        return {
+          ...feedResult,
+          ...parsed,
+          hub: feedResult.hub || parsed._hub,
+          discoveredFrom: url,
+        };
+      }
+    }
+    throw new Error(
+      `Unable to find a feed at ${url}. Try the direct feed URL.`,
+    );
   }
 
   const parsed = await parseFeed(result.content, url, {
@@ -170,6 +196,48 @@ export async function fetchAndParseFeed(url, options = {}) {
     ...parsed,
     hub: result.hub || parsed._hub,
   };
+}
+
+/**
+ * Common feed paths to try when discovery fails
+ */
+const COMMON_FEED_PATHS = ["/feed/", "/feed", "/rss", "/rss.xml", "/atom.xml"];
+
+/**
+ * Try to fetch a feed from common paths
+ * @param {string} baseUrl - Base URL of the site
+ * @param {object} options - Fetch options
+ * @returns {Promise<object|undefined>} Feed result or undefined
+ */
+async function tryCommonFeedPaths(baseUrl, options = {}) {
+  const base = new URL(baseUrl);
+
+  for (const feedPath of COMMON_FEED_PATHS) {
+    const feedUrl = new URL(feedPath, base).href;
+    try {
+      const result = await fetchFeed(feedUrl, { ...options, timeout: 10_000 });
+      const contentType = result.contentType?.toLowerCase() || "";
+
+      // Check if we got a feed
+      if (
+        contentType.includes("xml") ||
+        contentType.includes("rss") ||
+        contentType.includes("atom") ||
+        (contentType.includes("json") &&
+          result.content?.includes("jsonfeed.org"))
+      ) {
+        return {
+          url: feedUrl,
+          type: contentType.includes("json") ? "jsonfeed" : "xml",
+          rel: "alternate",
+        };
+      }
+    } catch {
+      // Try next path
+    }
+  }
+
+  return;
 }
 
 /**
@@ -187,19 +255,62 @@ export async function discoverFeedsFromUrl(url, options = {}) {
   if (
     contentType.includes("xml") ||
     contentType.includes("rss") ||
-    contentType.includes("atom") ||
-    contentType.includes("json")
+    contentType.includes("atom")
   ) {
     return [
       {
         url,
-        type: contentType.includes("json") ? "jsonfeed" : "xml",
+        type: "xml",
         rel: "self",
       },
     ];
   }
 
-  // Otherwise, discover feeds from HTML
-  const feeds = await discoverFeeds(result.content, url);
-  return feeds;
+  // Check for JSON Feed specifically
+  if (
+    contentType.includes("json") &&
+    result.content?.includes("jsonfeed.org")
+  ) {
+    return [
+      {
+        url,
+        type: "jsonfeed",
+        rel: "self",
+      },
+    ];
+  }
+
+  // Check if we got ActivityPub JSON or other non-feed JSON
+  // This happens with WordPress sites using ActivityPub plugin
+  if (
+    contentType.includes("json") ||
+    (result.content?.trim().startsWith("{") &&
+      result.content?.includes("@context"))
+  ) {
+    // Try common feed paths as fallback
+    const fallbackFeed = await tryCommonFeedPaths(url, options);
+    if (fallbackFeed) {
+      return [fallbackFeed];
+    }
+  }
+
+  // If content looks like HTML, discover feeds from it
+  if (
+    contentType.includes("html") ||
+    result.content?.includes("<!DOCTYPE html") ||
+    result.content?.includes("<html")
+  ) {
+    const feeds = await discoverFeeds(result.content, url);
+    if (feeds.length > 0) {
+      return feeds;
+    }
+  }
+
+  // Last resort: try common feed paths
+  const fallbackFeed = await tryCommonFeedPaths(url, options);
+  if (fallbackFeed) {
+    return [fallbackFeed];
+  }
+
+  return [];
 }

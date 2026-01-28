@@ -8,6 +8,66 @@ import crypto from "node:crypto";
 import sanitizeHtml from "sanitize-html";
 
 /**
+ * Parse a date string with fallback for non-standard formats
+ * @param {string|Date} dateInput - Date string or Date object
+ * @returns {Date|undefined} Parsed Date or undefined if invalid
+ */
+function parseDate(dateInput) {
+  if (!dateInput) {
+    return;
+  }
+
+  // Already a valid Date
+  if (dateInput instanceof Date && !Number.isNaN(dateInput.getTime())) {
+    return dateInput;
+  }
+
+  const dateString = String(dateInput).trim();
+
+  // Try standard parsing first
+  let date = new Date(dateString);
+  if (!Number.isNaN(date.getTime())) {
+    return date;
+  }
+
+  // Handle "YYYY-MM-DD HH:MM" format (missing seconds and timezone)
+  // e.g., "2026-01-28 08:40"
+  const shortDateTime = dateString.match(
+    /^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})$/,
+  );
+  if (shortDateTime) {
+    date = new Date(`${shortDateTime[1]}T${shortDateTime[2]}:00Z`);
+    if (!Number.isNaN(date.getTime())) {
+      return date;
+    }
+  }
+
+  // Handle "YYYY-MM-DD HH:MM:SS" without timezone
+  const dateTimeNoTz = dateString.match(
+    /^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2})$/,
+  );
+  if (dateTimeNoTz) {
+    date = new Date(`${dateTimeNoTz[1]}T${dateTimeNoTz[2]}Z`);
+    if (!Number.isNaN(date.getTime())) {
+      return date;
+    }
+  }
+
+  // If all else fails, return undefined
+  return;
+}
+
+/**
+ * Safely convert date to ISO string
+ * @param {string|Date} dateInput - Date input
+ * @returns {string|undefined} ISO string or undefined
+ */
+function toISOStringSafe(dateInput) {
+  const date = parseDate(dateInput);
+  return date ? date.toISOString() : undefined;
+}
+
+/**
  * Sanitize HTML options
  */
 const SANITIZE_OPTIONS = {
@@ -91,8 +151,8 @@ export function normalizeItem(item, feedUrl, feedType) {
     uid,
     url,
     name: item.title || undefined,
-    published: item.pubdate ? new Date(item.pubdate).toISOString() : undefined,
-    updated: item.date ? new Date(item.date).toISOString() : undefined,
+    published: toISOStringSafe(item.pubdate),
+    updated: toISOStringSafe(item.date),
     _source: {
       feedUrl,
       feedType,

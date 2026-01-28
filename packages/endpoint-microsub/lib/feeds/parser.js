@@ -51,12 +51,17 @@ export function detectFeedType(content, contentType = "") {
   // Fall back to content inspection
   const trimmed = content.trim();
 
-  // JSON Feed
+  // JSON content
   if (trimmed.startsWith("{")) {
     try {
       const json = JSON.parse(trimmed);
+      // JSON Feed
       if (json.version && json.version.includes("jsonfeed.org")) {
         return "jsonfeed";
+      }
+      // ActivityPub - return special type to indicate we need feed discovery
+      if (json["@context"] || json.type === "Group" || json.inbox) {
+        return "activitypub";
       }
     } catch {
       // Not JSON
@@ -110,6 +115,12 @@ export async function parseFeed(content, feedUrl, options = {}) {
 
     case "hfeed": {
       return parseHfeed(content, feedUrl);
+    }
+
+    case "activitypub": {
+      throw new Error(
+        `URL returns ActivityPub JSON instead of a feed. Try the direct feed URL (e.g., ${feedUrl}feed/)`,
+      );
     }
 
     default: {
