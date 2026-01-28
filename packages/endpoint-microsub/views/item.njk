@@ -50,19 +50,19 @@
     </div>
     {% endif %}
 
-    {% if item.inReplyTo or item.likeOf or item.repostOf or item.bookmarkOf %}
+    {% if item["in-reply-to"] or item["like-of"] or item["repost-of"] or item["bookmark-of"] %}
     <div class="item__context">
-      {% if item.inReplyTo %}
-      <p>{{ icon("reply") }} {{ __("Reply to") }}: <a href="{{ item.inReplyTo[0] }}">{{ item.inReplyTo[0] }}</a></p>
+      {% if item["in-reply-to"] %}
+      <p>{{ icon("reply") }} {{ __("Reply to") }}: <a href="{{ item["in-reply-to"][0] }}">{{ item["in-reply-to"][0] }}</a></p>
       {% endif %}
-      {% if item.likeOf %}
-      <p>{{ icon("like") }} {{ __("Liked") }}: <a href="{{ item.likeOf[0] }}">{{ item.likeOf[0] }}</a></p>
+      {% if item["like-of"] %}
+      <p>{{ icon("like") }} {{ __("Liked") }}: <a href="{{ item["like-of"][0] }}">{{ item["like-of"][0] }}</a></p>
       {% endif %}
-      {% if item.repostOf %}
-      <p>{{ icon("repost") }} {{ __("Reposted") }}: <a href="{{ item.repostOf[0] }}">{{ item.repostOf[0] }}</a></p>
+      {% if item["repost-of"] %}
+      <p>{{ icon("repost") }} {{ __("Reposted") }}: <a href="{{ item["repost-of"][0] }}">{{ item["repost-of"][0] }}</a></p>
       {% endif %}
-      {% if item.bookmarkOf %}
-      <p>{{ icon("bookmark") }} {{ __("Bookmarked") }}: <a href="{{ item.bookmarkOf[0] }}">{{ item.bookmarkOf[0] }}</a></p>
+      {% if item["bookmark-of"] %}
+      <p>{{ icon("bookmark") }} {{ __("Bookmarked") }}: <a href="{{ item["bookmark-of"][0] }}">{{ item["bookmark-of"][0] }}</a></p>
       {% endif %}
     </div>
     {% endif %}
