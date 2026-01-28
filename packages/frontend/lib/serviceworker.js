@@ -151,18 +151,32 @@ self.addEventListener("fetch", (event) => {
           // NETWORK
           // Save a copy of page to pages cache
           clearTimeout(timer);
-          const copy = responseFromPreloadOrFetch.clone();
-          const pagesCache = await caches.open(pagesCacheName);
-          await pagesCache.put(request, copy);
+          try {
+            const copy = responseFromPreloadOrFetch.clone();
+            const pagesCache = await caches.open(pagesCacheName);
+            await pagesCache.put(request, copy);
+          } catch (cacheError) {
+            // Cache put failed (e.g., network error response), but continue serving the response
+            console.error("Failed to cache page:", cacheError);
+          }
 
           return responseFromPreloadOrFetch;
         } catch (error) {
-          console.error(error, request);
+          console.error("Network fetch failed:", error, request.url);
 
           // CACHE or OFFLINE PAGE
           clearTimeout(timer);
           const responseFromCache = await retrieveFromCache;
-          return responseFromCache || caches.match("/offline");
+          const offlineResponse = await caches.match("/offline");
+          return (
+            responseFromCache ||
+            offlineResponse ||
+            new Response("Offline", {
+              status: 503,
+              statusText: "Service Unavailable",
+              headers: { "Content-Type": "text/plain" },
+            })
+          );
         }
       })(),
     );
@@ -185,15 +199,24 @@ self.addEventListener("fetch", (event) => {
           // NETWORK
           // If request is for an image, save a copy to images cache
           if (/\.(jpe?g|png|gif|svg|webp)/.test(request.url)) {
-            const copy = responseFromFetch.clone();
-            const imagesCache = await caches.open(imageCacheName);
-            await imagesCache.put(request, copy);
+            try {
+              const copy = responseFromFetch.clone();
+              const imagesCache = await caches.open(imageCacheName);
+              await imagesCache.put(request, copy);
+            } catch (cacheError) {
+              // Cache put failed (e.g., network error response), but continue serving the response
+              console.error("Failed to cache image:", cacheError);
+            }
           }
 
           return responseFromFetch;
         }
       } catch (error) {
-        console.error(error);
+        console.error(
+          "Fetch failed for non-HTML resource:",
+          error,
+          request.url,
+        );
 
         // OFFLINE IMAGE
         if (/\.(jpe?g|png|gif|svg|webp)/.test(request.url)) {
@@ -204,6 +227,13 @@ self.addEventListener("fetch", (event) => {
             },
           });
         }
+
+        // For other resources, return a network error response
+        return new Response("Network error", {
+          status: 503,
+          statusText: "Service Unavailable",
+          headers: { "Content-Type": "text/plain" },
+        });
       }
     })(),
   );
