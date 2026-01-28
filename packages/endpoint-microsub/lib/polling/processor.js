@@ -73,6 +73,11 @@ export async function processFeed(application, feed) {
         continue;
       }
 
+      // Enrich item source with feed metadata
+      if (item._source) {
+        item._source.name = feed.title || parsed.name;
+      }
+
       // Store the item
       const stored = await addItem(application, {
         channelId: feed.channelId,

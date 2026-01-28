@@ -122,6 +122,50 @@ export async function getTimelineItems(application, channelId, options = {}) {
 }
 
 /**
+ * Extract URL string from a media value
+ * @param {object|string} media - Media value (can be string URL or object)
+ * @returns {string|undefined} URL string
+ */
+function extractMediaUrl(media) {
+  if (!media) {
+    return;
+  }
+  if (typeof media === "string") {
+    return media;
+  }
+  if (typeof media === "object") {
+    return media.value || media.url || media.src;
+  }
+}
+
+/**
+ * Normalize media array to URL strings
+ * @param {Array} mediaArray - Array of media items
+ * @returns {Array} Array of URL strings
+ */
+function normalizeMediaArray(mediaArray) {
+  if (!mediaArray || !Array.isArray(mediaArray)) {
+    return [];
+  }
+  return mediaArray.map((media) => extractMediaUrl(media)).filter(Boolean);
+}
+
+/**
+ * Normalize author object to ensure photo is a URL string
+ * @param {object} author - Author object
+ * @returns {object} Normalized author
+ */
+function normalizeAuthor(author) {
+  if (!author) {
+    return;
+  }
+  return {
+    ...author,
+    photo: extractMediaUrl(author.photo),
+  };
+}
+
+/**
  * Transform database item to jf2 format
  * @param {object} item - Database item
  * @param {string} [userId] - User ID for read state
@@ -142,11 +186,17 @@ function transformToJf2(item, userId) {
   if (item.content) jf2.content = item.content;
   if (item.summary) jf2.summary = item.summary;
   if (item.updated) jf2.updated = item.updated.toISOString();
-  if (item.author) jf2.author = item.author;
+  if (item.author) jf2.author = normalizeAuthor(item.author);
   if (item.category?.length > 0) jf2.category = item.category;
-  if (item.photo?.length > 0) jf2.photo = item.photo;
-  if (item.video?.length > 0) jf2.video = item.video;
-  if (item.audio?.length > 0) jf2.audio = item.audio;
+
+  // Normalize media arrays to ensure they contain URL strings
+  const photos = normalizeMediaArray(item.photo);
+  const videos = normalizeMediaArray(item.video);
+  const audios = normalizeMediaArray(item.audio);
+
+  if (photos.length > 0) jf2.photo = photos;
+  if (videos.length > 0) jf2.video = videos;
+  if (audios.length > 0) jf2.audio = audios;
 
   // Interaction types
   if (item.likeOf?.length > 0) jf2["like-of"] = item.likeOf;
@@ -161,18 +211,33 @@ function transformToJf2(item, userId) {
 }
 
 /**
- * Get an item by ID
+ * Get an item by ID (MongoDB _id or uid)
  * @param {object} application - Indiekit application
- * @param {ObjectId|string} id - Item ObjectId
+ * @param {ObjectId|string} id - Item ObjectId or uid string
  * @param {string} [userId] - User ID for read state
- * @returns {Promise<object|null>} jf2 item or null
+ * @returns {Promise<object|undefined>} jf2 item or undefined
  */
 export async function getItemById(application, id, userId) {
   const collection = getCollection(application);
-  const objectId = typeof id === "string" ? new ObjectId(id) : id;
 
-  const item = await collection.findOne({ _id: objectId });
-  if (!item) return;
+  let item;
+
+  // Try MongoDB ObjectId first
+  try {
+    const objectId = typeof id === "string" ? new ObjectId(id) : id;
+    item = await collection.findOne({ _id: objectId });
+  } catch {
+    // Invalid ObjectId format, will try uid lookup
+  }
+
+  // If not found by _id, try uid
+  if (!item) {
+    item = await collection.findOne({ uid: id });
+  }
+
+  if (!item) {
+    return;
+  }
 
   return transformToJf2(item, userId);
 }

@@ -154,6 +154,7 @@ export function normalizeItem(item, feedUrl, feedType) {
     published: toISOStringSafe(item.pubdate),
     updated: toISOStringSafe(item.date),
     _source: {
+      url: feedUrl,
       feedUrl,
       feedType,
       originalId: item.guid,
@@ -310,6 +311,7 @@ export function normalizeJsonFeedItem(item, feedUrl) {
       ? new Date(item.date_modified).toISOString()
       : undefined,
     _source: {
+      url: feedUrl,
       feedUrl,
       feedType: "jsonfeed",
       originalId: item.id,
@@ -451,6 +453,7 @@ export function normalizeHfeedItem(entry, feedUrl) {
     uid,
     url,
     _source: {
+      url: feedUrl,
       feedUrl,
       feedType: "hfeed",
       originalId: getFirst(properties.uid),
@@ -597,6 +600,24 @@ export function normalizeHfeedMeta(hfeed, feedUrl) {
 }
 
 /**
+ * Extract URL string from a photo value
+ * @param {object|string} photo - Photo value (can be string URL or object with value/url)
+ * @returns {string|undefined} Photo URL string
+ */
+function extractPhotoUrl(photo) {
+  if (!photo) {
+    return;
+  }
+  if (typeof photo === "string") {
+    return photo;
+  }
+  if (typeof photo === "object") {
+    return photo.value || photo.url || photo.src;
+  }
+  return;
+}
+
+/**
  * Normalize h-card author
  * @param {object|string} hcard - h-card or author name string
  * @returns {object} Normalized author object
@@ -616,7 +637,7 @@ function normalizeHcard(hcard) {
     type: "card",
     name: getFirst(properties.name),
     url: getFirst(properties.url),
-    photo: getFirst(properties.photo),
+    photo: extractPhotoUrl(getFirst(properties.photo)),
   };
 }
 

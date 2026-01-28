@@ -1,6 +1,6 @@
 {# Item card for timeline display #}
 <article class="item-card{% if item._is_read %} item-card--read{% endif %}">
-  <a href="{{ baseUrl }}/item/{{ item.uid }}" class="item-card__link">
+  <a href="{{ baseUrl }}/item/{{ item._id }}" class="item-card__link">
     {% if item.author %}
     <div class="item-card__author">
       {% if item.author.photo %}
