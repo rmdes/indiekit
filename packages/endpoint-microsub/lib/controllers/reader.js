@@ -310,14 +310,24 @@ export async function item(request, response) {
  * @returns {Promise<void>}
  */
 export async function compose(request, response) {
-  const { replyTo, likeOf, repostOf, bookmarkOf } = request.query;
+  // Support both long-form (replyTo) and short-form (reply) query params
+  const {
+    replyTo,
+    reply,
+    likeOf,
+    like,
+    repostOf,
+    repost,
+    bookmarkOf,
+    bookmark,
+  } = request.query;
 
   response.render("compose", {
     title: request.__("microsub.compose.title"),
-    replyTo,
-    likeOf,
-    repostOf,
-    bookmarkOf,
+    replyTo: replyTo || reply,
+    likeOf: likeOf || like,
+    repostOf: repostOf || repost,
+    bookmarkOf: bookmarkOf || bookmark,
     baseUrl: request.baseUrl,
   });
 }

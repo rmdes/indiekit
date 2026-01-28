@@ -8,57 +8,57 @@
 
     <h2>{{ __("microsub.compose.title") }}</h2>
 
-    {% if replyTo or reply %}
+    {% if replyTo %}
     <div class="compose__context">
       {{ icon("reply") }} {{ __("microsub.compose.replyTo") }}:
-      <a href="{{ replyTo or reply }}" target="_blank" rel="noopener">
-        {{ (replyTo or reply) | replace("https://", "") | replace("http://", "") }}
+      <a href="{{ replyTo }}" target="_blank" rel="noopener">
+        {{ replyTo | replace("https://", "") | replace("http://", "") }}
       </a>
     </div>
     {% endif %}
 
-    {% if likeOf or like %}
+    {% if likeOf %}
     <div class="compose__context">
       {{ icon("like") }} {{ __("microsub.compose.likeOf") }}:
-      <a href="{{ likeOf or like }}" target="_blank" rel="noopener">
-        {{ (likeOf or like) | replace("https://", "") | replace("http://", "") }}
+      <a href="{{ likeOf }}" target="_blank" rel="noopener">
+        {{ likeOf | replace("https://", "") | replace("http://", "") }}
       </a>
     </div>
     {% endif %}
 
-    {% if repostOf or repost %}
+    {% if repostOf %}
     <div class="compose__context">
       {{ icon("repost") }} {{ __("microsub.compose.repostOf") }}:
-      <a href="{{ repostOf or repost }}" target="_blank" rel="noopener">
-        {{ (repostOf or repost) | replace("https://", "") | replace("http://", "") }}
+      <a href="{{ repostOf }}" target="_blank" rel="noopener">
+        {{ repostOf | replace("https://", "") | replace("http://", "") }}
       </a>
     </div>
     {% endif %}
 
-    {% if bookmarkOf or bookmark %}
+    {% if bookmarkOf %}
     <div class="compose__context">
       {{ icon("bookmark") }} {{ __("microsub.compose.bookmarkOf") }}:
-      <a href="{{ bookmarkOf or bookmark }}" target="_blank" rel="noopener">
-        {{ (bookmarkOf or bookmark) | replace("https://", "") | replace("http://", "") }}
+      <a href="{{ bookmarkOf }}" target="_blank" rel="noopener">
+        {{ bookmarkOf | replace("https://", "") | replace("http://", "") }}
       </a>
     </div>
     {% endif %}
 
     <form method="post" action="{{ baseUrl }}/compose">
-      {% if replyTo or reply %}
-      <input type="hidden" name="in-reply-to" value="{{ replyTo or reply }}">
+      {% if replyTo %}
+      <input type="hidden" name="in-reply-to" value="{{ replyTo }}">
       {% endif %}
-      {% if likeOf or like %}
-      <input type="hidden" name="like-of" value="{{ likeOf or like }}">
+      {% if likeOf %}
+      <input type="hidden" name="like-of" value="{{ likeOf }}">
       {% endif %}
-      {% if repostOf or repost %}
-      <input type="hidden" name="repost-of" value="{{ repostOf or repost }}">
+      {% if repostOf %}
+      <input type="hidden" name="repost-of" value="{{ repostOf }}">
       {% endif %}
-      {% if bookmarkOf or bookmark %}
-      <input type="hidden" name="bookmark-of" value="{{ bookmarkOf or bookmark }}">
+      {% if bookmarkOf %}
+      <input type="hidden" name="bookmark-of" value="{{ bookmarkOf }}">
       {% endif %}
 
-      {% set isAction = (likeOf or like) or (repostOf or repost) or (bookmarkOf or bookmark) %}
+      {% set isAction = likeOf or repostOf or bookmarkOf %}
 
       {% if not isAction %}
       {{ textarea({
