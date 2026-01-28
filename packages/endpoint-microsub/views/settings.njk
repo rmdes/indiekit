@@ -1,10 +1,12 @@
-{% extends "document.njk" %}
+{% extends "layouts/reader.njk" %}
 
-{% block content %}
+{% block reader %}
   <div class="settings">
     <a href="{{ baseUrl }}/channels/{{ channel.uid }}" class="back-link">
       {{ icon("previous") }} {{ channel.name }}
     </a>
+
+    <h2>{{ __("microsub.settings.title", { channel: channel.name }) }}</h2>
 
     <form method="post" action="{{ baseUrl }}/channels/{{ channel.uid }}/settings">
       {{ checkboxes({

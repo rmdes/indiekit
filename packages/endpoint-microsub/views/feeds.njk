@@ -1,6 +1,6 @@
-{% extends "document.njk" %}
+{% extends "layouts/reader.njk" %}
 
-{% block content %}
+{% block reader %}
   <div class="feeds">
     <header class="feeds__header">
       <a href="{{ baseUrl }}/channels/{{ channel.uid }}" class="back-link">
@@ -11,16 +11,24 @@
     <h2>{{ __("microsub.feeds.title") }}</h2>
 
     {% if feeds.length > 0 %}
-    <ul class="feeds__list">
+    <div class="feeds__list">
       {% for feed in feeds %}
-      <li class="feeds__item">
+      <div class="feeds__item">
         <div class="feeds__info">
           {% if feed.photo %}
-          <img src="{{ feed.photo }}" alt="" class="feeds__photo" width="32" height="32" loading="lazy">
+          <img src="{{ feed.photo }}"
+               alt=""
+               class="feeds__photo"
+               width="48"
+               height="48"
+               loading="lazy"
+               onerror="this.style.display='none'">
           {% endif %}
           <div class="feeds__details">
             <span class="feeds__name">{{ feed.title or feed.url }}</span>
-            <a href="{{ feed.url }}" class="feeds__url" target="_blank" rel="noopener">{{ feed.url }}</a>
+            <a href="{{ feed.url }}" class="feeds__url" target="_blank" rel="noopener">
+              {{ feed.url | replace("https://", "") | replace("http://", "") }}
+            </a>
           </div>
         </div>
         <form method="post" action="{{ baseUrl }}/channels/{{ channel.uid }}/feeds/remove" class="feeds__actions">
@@ -30,11 +38,14 @@
             classes: "button--secondary button--small"
           }) }}
         </form>
-      </li>
+      </div>
       {% endfor %}
-    </ul>
+    </div>
     {% else %}
-    {{ prose({ text: __("microsub.feeds.empty") }) }}
+    <div class="reader__empty">
+      {{ icon("syndicate") }}
+      <p>{{ __("microsub.feeds.empty") }}</p>
+    </div>
     {% endif %}
 
     <div class="feeds__add">

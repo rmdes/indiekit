@@ -1,6 +1,6 @@
-{% extends "document.njk" %}
+{% extends "layouts/reader.njk" %}
 
-{% block content %}
+{% block reader %}
   <div class="search">
     <a href="{{ baseUrl }}/channels" class="back-link">
       {{ icon("previous") }} {{ __("microsub.channels.title") }}
@@ -28,11 +28,12 @@
     {% if results and results.length > 0 %}
     <div class="search__results">
       <h3>{{ __("microsub.search.title") }}</h3>
-      <ul class="search__list">
+      <div class="search__list">
         {% for result in results %}
-        <li class="search__item">
+        <div class="search__item">
           <div class="search__feed">
-            <span class="search__url">{{ result.url }}</span>
+            <span class="search__name">{{ result.title or "Feed" }}</span>
+            <span class="search__url">{{ result.url | replace("https://", "") | replace("http://", "") }}</span>
           </div>
           <form method="post" action="{{ baseUrl }}/subscribe" class="search__subscribe">
             <input type="hidden" name="url" value="{{ result.url }}">
@@ -47,12 +48,14 @@
               classes: "button--small"
             }) }}
           </form>
-        </li>
+        </div>
         {% endfor %}
-      </ul>
+      </div>
     </div>
     {% elif searched %}
-    {{ prose({ text: __("microsub.search.noResults") }) }}
+    <div class="reader__empty">
+      <p>{{ __("microsub.search.noResults") }}</p>
+    </div>
     {% endif %}
   </div>
 {% endblock %}

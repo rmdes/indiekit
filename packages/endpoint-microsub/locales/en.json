@@ -27,6 +27,7 @@
     "feeds": {
       "title": "Feeds",
       "follow": "Follow",
+      "subscribe": "Subscribe to a feed",
       "unfollow": "Unfollow",
       "empty": "No feeds followed in this channel",
       "url": "Feed URL",
