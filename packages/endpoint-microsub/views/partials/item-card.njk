@@ -94,7 +94,8 @@
 
     {# Photo grid (Aperture multi-photo pattern) #}
     {% if item.photo and item.photo.length > 0 %}
-    <div class="item-card__photos item-card__photos--{{ [item.photo.length, 4] | min }}">
+    {% set photoCount = item.photo.length if item.photo.length <= 4 else 4 %}
+    <div class="item-card__photos item-card__photos--{{ photoCount }}">
       {% for photo in item.photo | slice(0, 4) %}
       <img src="{{ photo }}"
            alt=""
