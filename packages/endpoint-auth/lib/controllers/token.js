@@ -1,3 +1,4 @@
+import { getProfileInformation } from "../profile.js";
 import { signToken } from "../token.js";
 
 export const tokenController = {
@@ -9,7 +10,7 @@ export const tokenController = {
    * @see {@link https://indieauth.spec.indieweb.org/#redeeming-the-authorization-code}
    * @see {@link https://indieauth.spec.indieweb.org/#access-token-response}
    */
-  post(request, response) {
+  async post(request, response) {
     const { me, scope } = request.verifiedToken;
 
     const tokenData = { me, ...(scope && { scope }) };
@@ -19,11 +20,29 @@ export const tokenController = {
       ...tokenData,
     };
 
+    // Include profile information if profile scope was requested
+    if (scope && scope.includes("profile")) {
+      const profile = await getProfileInformation(me);
+      if (profile) {
+        accessToken.profile = profile;
+      }
+    }
+
     if (request.accepts("application/json")) {
       response.json(accessToken);
     } else {
       response.set("content-type", "application/x-www-form-urlencoded");
-      response.send(new URLSearchParams(accessToken).toString());
+      // Flatten profile for form-urlencoded response
+      const parameters = new URLSearchParams();
+      for (const [key, value] of Object.entries(accessToken)) {
+        if (key === "profile" && typeof value === "object") {
+          // Encode profile as JSON string for form-urlencoded
+          parameters.set("profile", JSON.stringify(value));
+        } else {
+          parameters.set(key, String(value));
+        }
+      }
+      response.send(parameters.toString());
     }
   },
 };
