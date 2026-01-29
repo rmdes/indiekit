@@ -17,7 +17,11 @@ import {
   createFeed,
   deleteFeed,
 } from "../storage/feeds.js";
-import { getTimelineItems, getItemById } from "../storage/items.js";
+import {
+  getTimelineItems,
+  getItemById,
+  markItemsRead,
+} from "../storage/items.js";
 import { getUserId } from "../utils/auth.js";
 import {
   validateChannelName,
@@ -171,6 +175,33 @@ export async function updateSettings(request, response) {
   );
 
   response.redirect(`${request.baseUrl}/channels/${uid}`);
+}
+
+/**
+ * Mark all items in channel as read
+ * @param {object} request - Express request
+ * @param {object} response - Express response
+ * @returns {Promise<void>}
+ */
+export async function markAllRead(request, response) {
+  const { application } = request.app.locals;
+  const userId = getUserId(request);
+  const { channel: channelUid } = request.body;
+
+  const channelDocument = await getChannel(application, channelUid, userId);
+  if (!channelDocument) {
+    return response.status(404).render("404");
+  }
+
+  // Mark all items as read using the special "last-read-entry" value
+  await markItemsRead(
+    application,
+    channelDocument._id,
+    ["last-read-entry"],
+    userId,
+  );
+
+  response.redirect(`${request.baseUrl}/channels/${channelUid}`);
 }
 
 /**
@@ -573,6 +604,7 @@ export const readerController = {
   channel,
   settings,
   updateSettings,
+  markAllRead,
   deleteChannel: deleteChannelAction,
   feeds,
   addFeed,
