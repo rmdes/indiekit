@@ -376,7 +376,7 @@ export async function submitCompose(request, response) {
   if (!micropubEndpoint) {
     return response.status(500).render("error", {
       title: "Error",
-      error: { message: "Micropub endpoint not configured" },
+      content: "Micropub endpoint not configured",
     });
   }
 
@@ -450,20 +450,34 @@ export async function submitCompose(request, response) {
 
     // Handle error
     const errorBody = await micropubResponse.text();
+    const statusText = micropubResponse.statusText || "Unknown error";
     console.error(
       `[Microsub] Micropub error: ${micropubResponse.status} ${errorBody}`,
     );
 
+    // Parse error message from response body if JSON
+    let errorMessage = `Micropub error: ${statusText}`;
+    try {
+      const errorJson = JSON.parse(errorBody);
+      if (errorJson.error_description) {
+        errorMessage = String(errorJson.error_description);
+      } else if (errorJson.error) {
+        errorMessage = String(errorJson.error);
+      }
+    } catch {
+      // Not JSON, use status text
+    }
+
     return response.status(micropubResponse.status).render("error", {
       title: "Error",
-      error: { message: `Micropub error: ${micropubResponse.statusText}` },
+      content: errorMessage,
     });
   } catch (error) {
     console.error(`[Microsub] Micropub request failed: ${error.message}`);
 
     return response.status(500).render("error", {
       title: "Error",
-      error: { message: `Failed to create post: ${error.message}` },
+      content: `Failed to create post: ${error.message}`,
     });
   }
 }
