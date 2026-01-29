@@ -7,36 +7,43 @@
          data-is-read="{{ item._is_read | default(false) }}">
 
   {# Context bar for interactions (Aperture pattern) #}
+  {# Helper to extract URL from value that may be string or object #}
+  {% macro getUrl(val) %}{{ val.url or val.value or val if val is string else val }}{% endmacro %}
+
   {% if item["like-of"] and item["like-of"].length > 0 %}
+  {% set contextUrl = item['like-of'][0].url or item['like-of'][0].value or item['like-of'][0] %}
   <div class="item-card__context">
     {{ icon("like") }}
     <span>Liked</span>
-    <a href="{{ item['like-of'][0] }}" target="_blank" rel="noopener">
-      {{ item['like-of'][0] | replace("https://", "") | replace("http://", "") | truncate(50) }}
+    <a href="{{ contextUrl }}" target="_blank" rel="noopener">
+      {{ contextUrl | replace("https://", "") | replace("http://", "") | truncate(50) }}
     </a>
   </div>
   {% elif item["repost-of"] and item["repost-of"].length > 0 %}
+  {% set contextUrl = item['repost-of'][0].url or item['repost-of'][0].value or item['repost-of'][0] %}
   <div class="item-card__context">
     {{ icon("repost") }}
     <span>Reposted</span>
-    <a href="{{ item['repost-of'][0] }}" target="_blank" rel="noopener">
-      {{ item['repost-of'][0] | replace("https://", "") | replace("http://", "") | truncate(50) }}
+    <a href="{{ contextUrl }}" target="_blank" rel="noopener">
+      {{ contextUrl | replace("https://", "") | replace("http://", "") | truncate(50) }}
     </a>
   </div>
   {% elif item["in-reply-to"] and item["in-reply-to"].length > 0 %}
+  {% set contextUrl = item['in-reply-to'][0].url or item['in-reply-to'][0].value or item['in-reply-to'][0] %}
   <div class="item-card__context">
     {{ icon("reply") }}
     <span>Reply to</span>
-    <a href="{{ item['in-reply-to'][0] }}" target="_blank" rel="noopener">
-      {{ item['in-reply-to'][0] | replace("https://", "") | replace("http://", "") | truncate(50) }}
+    <a href="{{ contextUrl }}" target="_blank" rel="noopener">
+      {{ contextUrl | replace("https://", "") | replace("http://", "") | truncate(50) }}
     </a>
   </div>
   {% elif item["bookmark-of"] and item["bookmark-of"].length > 0 %}
+  {% set contextUrl = item['bookmark-of'][0].url or item['bookmark-of'][0].value or item['bookmark-of'][0] %}
   <div class="item-card__context">
     {{ icon("bookmark") }}
     <span>Bookmarked</span>
-    <a href="{{ item['bookmark-of'][0] }}" target="_blank" rel="noopener">
-      {{ item['bookmark-of'][0] | replace("https://", "") | replace("http://", "") | truncate(50) }}
+    <a href="{{ contextUrl }}" target="_blank" rel="noopener">
+      {{ contextUrl | replace("https://", "") | replace("http://", "") | truncate(50) }}
     </a>
   </div>
   {% endif %}
