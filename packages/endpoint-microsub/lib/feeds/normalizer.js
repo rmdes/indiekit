@@ -536,18 +536,18 @@ export function normalizeHfeedItem(entry, feedUrl) {
     );
   }
 
-  // Interaction types
+  // Interaction types - normalize to string URLs
   if (properties["like-of"]) {
-    normalized["like-of"] = properties["like-of"];
+    normalized["like-of"] = normalizeUrlArray(properties["like-of"]);
   }
   if (properties["repost-of"]) {
-    normalized["repost-of"] = properties["repost-of"];
+    normalized["repost-of"] = normalizeUrlArray(properties["repost-of"]);
   }
   if (properties["bookmark-of"]) {
-    normalized["bookmark-of"] = properties["bookmark-of"];
+    normalized["bookmark-of"] = normalizeUrlArray(properties["bookmark-of"]);
   }
   if (properties["in-reply-to"]) {
-    normalized["in-reply-to"] = properties["in-reply-to"];
+    normalized["in-reply-to"] = normalizeUrlArray(properties["in-reply-to"]);
   }
 
   // RSVP
@@ -615,6 +615,36 @@ function extractPhotoUrl(photo) {
     return photo.value || photo.url || photo.src;
   }
   return;
+}
+
+/**
+ * Extract URL string from a value that may be string or object
+ * @param {object|string} value - URL string or object with url/value property
+ * @returns {string|undefined} URL string
+ */
+function extractUrl(value) {
+  if (!value) {
+    return;
+  }
+  if (typeof value === "string") {
+    return value;
+  }
+  if (typeof value === "object") {
+    return value.value || value.url || value.href;
+  }
+  return;
+}
+
+/**
+ * Normalize an array of URLs that may contain strings or objects
+ * @param {Array} urls - Array of URL strings or objects
+ * @returns {Array<string>} Array of URL strings
+ */
+function normalizeUrlArray(urls) {
+  if (!urls || !Array.isArray(urls)) {
+    return [];
+  }
+  return urls.map((u) => extractUrl(u)).filter(Boolean);
 }
 
 /**

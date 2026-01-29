@@ -304,6 +304,18 @@ export async function item(request, response) {
 }
 
 /**
+ * Ensure value is a string URL
+ * @param {string|object|undefined} value - Value to check
+ * @returns {string|undefined} String value or undefined
+ */
+function ensureString(value) {
+  if (!value) return;
+  if (typeof value === "string") return value;
+  if (typeof value === "object" && value.url) return value.url;
+  return String(value);
+}
+
+/**
  * Compose response form
  * @param {object} request - Express request
  * @param {object} response - Express response
@@ -324,10 +336,10 @@ export async function compose(request, response) {
 
   response.render("compose", {
     title: request.__("microsub.compose.title"),
-    replyTo: replyTo || reply,
-    likeOf: likeOf || like,
-    repostOf: repostOf || repost,
-    bookmarkOf: bookmarkOf || bookmark,
+    replyTo: ensureString(replyTo || reply),
+    likeOf: ensureString(likeOf || like),
+    repostOf: ensureString(repostOf || repost),
+    bookmarkOf: ensureString(bookmarkOf || bookmark),
     baseUrl: request.baseUrl,
   });
 }
