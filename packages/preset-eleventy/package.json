@@ -1,7 +1,7 @@
 {
-  "name": "@indiekit/preset-eleventy",
+  "name": "@rmdes/indiekit-preset-eleventy",
   "version": "1.0.0-beta.25",
-  "description": "Eleventy publication preset for Indiekit",
+  "description": "Eleventy publication preset for Indiekit (fork with permalink fix)",
   "keywords": [
     "indiekit",
     "indiekit-plugin",
@@ -27,11 +27,11 @@
     "index.js"
   ],
   "bugs": {
-    "url": "https://github.com/getindiekit/indiekit/issues"
+    "url": "https://github.com/rmdes/indiekit/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/getindiekit/indiekit.git",
+    "url": "https://github.com/rmdes/indiekit.git",
     "directory": "packages/preset-eleventy"
   },
   "dependencies": {
