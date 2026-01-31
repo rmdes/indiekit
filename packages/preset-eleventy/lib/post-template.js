@@ -58,8 +58,18 @@ const getFrontMatter = (properties) => {
 
   // Convert url to Eleventy permalink so generated URL matches Indiekit's stored URL
   // Add trailing slash to generate /path/index.html instead of /path.html
+  // Extract path from full URL since Eleventy expects a path, not a full URL
   if (properties.url) {
-    const url = properties.url;
+    let url = properties.url;
+    // If it's a full URL, extract just the pathname
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      try {
+        const parsed = new URL(url);
+        url = parsed.pathname;
+      } catch {
+        // If URL parsing fails, use as-is
+      }
+    }
     properties.permalink = url.endsWith("/") ? url : `${url}/`;
   }
   delete properties.url;

@@ -13,7 +13,7 @@ export const getPostTypes = (postTypes) => {
       ...postTypes.get(type),
       post: {
         path: `${collection}/{yyyy}-{MM}-{dd}-{slug}.md`,
-        url: `${collection}/{yyyy}/{MM}/{dd}/{slug}`,
+        url: `content/${collection}/{yyyy}-{MM}-{dd}-{slug}`,
       },
       media: {
         path: `media/${collection}/{yyyy}/{MM}/{dd}/{filename}`,
