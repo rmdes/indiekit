@@ -46,12 +46,16 @@
     "compose": {
       "title": "Compose",
       "content": "What's on your mind?",
+      "comment": "Add a comment (optional)",
+      "commentHint": "Your comment will be included with the syndicated post",
       "submit": "Post",
       "cancel": "Cancel",
       "replyTo": "Replying to",
       "likeOf": "Liking",
       "repostOf": "Reposting",
-      "bookmarkOf": "Bookmarking"
+      "bookmarkOf": "Bookmarking",
+      "syndicateTo": "Syndicate to",
+      "syndicateHint": "Also share this to your connected accounts"
     },
     "settings": {
       "title": "{{channel}} settings",

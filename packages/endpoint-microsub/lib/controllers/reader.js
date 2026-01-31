@@ -361,12 +361,46 @@ function ensureString(value) {
 }
 
 /**
+ * Fetch syndication targets from Micropub config
+ * @param {object} application - Indiekit application
+ * @param {string} token - Auth token
+ * @returns {Promise<Array>} Syndication targets
+ */
+async function getSyndicationTargets(application, token) {
+  try {
+    const micropubEndpoint = application.micropubEndpoint;
+    if (!micropubEndpoint) return [];
+
+    const micropubUrl = micropubEndpoint.startsWith("http")
+      ? micropubEndpoint
+      : new URL(micropubEndpoint, application.url).href;
+
+    const configUrl = `${micropubUrl}?q=config`;
+    const configResponse = await fetch(configUrl, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+    });
+
+    if (!configResponse.ok) return [];
+
+    const config = await configResponse.json();
+    return config["syndicate-to"] || [];
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Compose response form
  * @param {object} request - Express request
  * @param {object} response - Express response
  * @returns {Promise<void>}
  */
 export async function compose(request, response) {
+  const { application } = request.app.locals;
+
   // Support both long-form (replyTo) and short-form (reply) query params
   const {
     replyTo,
@@ -379,12 +413,19 @@ export async function compose(request, response) {
     bookmark,
   } = request.query;
 
+  // Fetch syndication targets if user is authenticated
+  const token = request.session?.access_token;
+  const syndicationTargets = token
+    ? await getSyndicationTargets(application, token)
+    : [];
+
   response.render("compose", {
     title: request.__("microsub.compose.title"),
     replyTo: ensureString(replyTo || reply),
     likeOf: ensureString(likeOf || like),
     repostOf: ensureString(repostOf || repost),
     bookmarkOf: ensureString(bookmarkOf || bookmark),
+    syndicationTargets,
     baseUrl: request.baseUrl,
   });
 }
@@ -402,6 +443,7 @@ export async function submitCompose(request, response) {
   const likeOf = request.body["like-of"];
   const repostOf = request.body["repost-of"];
   const bookmarkOf = request.body["bookmark-of"];
+  const syndicateTo = request.body["mp-syndicate-to"];
 
   // Debug logging
   console.info(
@@ -414,6 +456,7 @@ export async function submitCompose(request, response) {
     likeOf,
     repostOf,
     bookmarkOf,
+    syndicateTo,
   });
 
   // Get Micropub endpoint
@@ -441,16 +484,22 @@ export async function submitCompose(request, response) {
   micropubData.append("h", "entry");
 
   if (likeOf) {
-    // Like post (no content needed)
+    // Like post - content is optional comment
     micropubData.append("like-of", likeOf);
+    if (content && content.trim()) {
+      micropubData.append("content", content.trim());
+    }
   } else if (repostOf) {
-    // Repost (no content needed)
+    // Repost - content is optional comment
     micropubData.append("repost-of", repostOf);
+    if (content && content.trim()) {
+      micropubData.append("content", content.trim());
+    }
   } else if (bookmarkOf) {
-    // Bookmark (content optional)
+    // Bookmark - content is optional comment
     micropubData.append("bookmark-of", bookmarkOf);
-    if (content) {
-      micropubData.append("content", content);
+    if (content && content.trim()) {
+      micropubData.append("content", content.trim());
     }
   } else if (inReplyTo) {
     // Reply
@@ -459,6 +508,14 @@ export async function submitCompose(request, response) {
   } else {
     // Regular note
     micropubData.append("content", content || "");
+  }
+
+  // Add syndication targets
+  if (syndicateTo) {
+    const targets = Array.isArray(syndicateTo) ? syndicateTo : [syndicateTo];
+    for (const target of targets) {
+      micropubData.append("mp-syndicate-to", target);
+    }
   }
 
   // Debug: log what we're sending
