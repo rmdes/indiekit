@@ -71,6 +71,32 @@
       <div class="compose__counter">
         <span id="char-count">0</span> characters
       </div>
+      {% else %}
+      {# Comment field for likes/reposts/bookmarks #}
+      {{ textarea({
+        label: __("microsub.compose.comment"),
+        id: "content",
+        name: "content",
+        rows: 3,
+        hint: __("microsub.compose.commentHint")
+      }) }}
+      <div class="compose__counter">
+        <span id="char-count">0</span> characters
+      </div>
+      {% endif %}
+
+      {# Syndication targets #}
+      {% if syndicationTargets and syndicationTargets.length %}
+      <fieldset class="compose__syndication">
+        <legend>{{ __("microsub.compose.syndicateTo") }}</legend>
+        <p class="hint">{{ __("microsub.compose.syndicateHint") }}</p>
+        {% for target in syndicationTargets %}
+        <label class="syndication-target">
+          <input type="checkbox" name="mp-syndicate-to" value="{{ target.uid }}"{% if target.checked %} checked{% endif %}>
+          <span class="syndication-target__name">{{ target.name }}</span>
+        </label>
+        {% endfor %}
+      </fieldset>
       {% endif %}
 
       <div class="button-group">
@@ -84,7 +110,6 @@
     </form>
   </div>
 
-  {% if not isAction %}
   <script type="module">
     const textarea = document.getElementById('content');
     const counter = document.getElementById('char-count');
@@ -94,5 +119,4 @@
       });
     }
   </script>
-  {% endif %}
 {% endblock %}

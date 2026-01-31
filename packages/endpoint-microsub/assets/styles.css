@@ -679,6 +679,43 @@
   text-align: right;
 }
 
+.compose__syndication {
+  background: var(--color-offset);
+  border: none;
+  border-radius: var(--border-radius);
+  margin: var(--space-m) 0;
+  padding: var(--space-m);
+}
+
+.compose__syndication legend {
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+}
+
+.compose__syndication .hint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+  margin-bottom: var(--space-s);
+}
+
+.syndication-target {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  gap: var(--space-s);
+  padding: var(--space-xs) 0;
+}
+
+.syndication-target input[type="checkbox"] {
+  flex-shrink: 0;
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+.syndication-target__name {
+  flex: 1;
+}
+
 /* ==========================================================================
    Settings
    ========================================================================== */
