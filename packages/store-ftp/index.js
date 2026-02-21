@@ -92,7 +92,7 @@ export default class FtpStore {
     const readableStream = new Readable();
     readableStream._read = () => {};
     readableStream.push(content, "utf8");
-    // eslint-disable-next-line
+    // eslint-disable-next-line unicorn/prefer-single-call, unicorn/no-null
     readableStream.push(null);
     return readableStream;
   }
