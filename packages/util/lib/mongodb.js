@@ -10,15 +10,22 @@ const debug = makeDebug(`indiekit:util:mongodb`);
  * @param {string} [after] - Items created after object with this ID
  * @param {string} [before] - Items created before object with this ID
  * @param {number} [limit] - Number of items to return within cursor
+ * @param {object} [filter] - Query to narrow the items (merged with the cursor range)
  * @returns {Promise<object>} Pagination cursor
  */
-export const getCursor = async (collection, after, before, limit) => {
+export const getCursor = async (
+  collection,
+  after,
+  before,
+  limit,
+  filter = {},
+) => {
   const cursor = {
     items: [],
     hasNext: false,
     hasPrev: false,
   };
-  const query = {};
+  const query = { ...filter };
   const options = {
     limit: limit ? Math.trunc(limit) : 40,
     sort: { _id: -1 },
@@ -38,11 +45,13 @@ export const getCursor = async (collection, after, before, limit) => {
     cursor.firstItem = items[0]._id;
     cursor.hasNext = Boolean(
       await collection.findOne({
+        ...filter,
         _id: { $lt: cursor.lastItem },
       }),
     );
     cursor.hasPrev = Boolean(
       await collection.findOne({
+        ...filter,
         _id: { $gt: cursor.firstItem },
       }),
     );

@@ -34,6 +34,17 @@ describe("util/lib/mongodb", async () => {
     assert.equal(result.hasPrev, false);
   });
 
+  it("Gets pagination cursor for a filter", async () => {
+    const result = await getCursor(items, undefined, undefined, 1, {
+      name: { $in: ["foo", "bar"] },
+    });
+    // bar, with foo still to come; baz (newest) never counted
+    assert.equal(result.items.length, 1);
+    assert.equal(result.items[0].name, "bar");
+    assert.equal(result.hasNext, true);
+    assert.equal(result.hasPrev, false);
+  });
+
   it("Gets pagination cursor after ID", async () => {
     const after = await items.findOne({ name: "baz" });
     const result = await getCursor(items, after._id);
